@@ -1,0 +1,184 @@
+@{
+    ViewData["Title"] = "Admin Dashboard - System Management";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-4">Admin Dashboard</h1>
+            <p class="text-muted">Welcome back, @ViewBag.UserName! System Administration Portal</p>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Total Users</h5>
+                    <h2 class="card-text">@ViewBag.TotalUsers</h2>
+                    <small>System users</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Manufacturers</h5>
+                    <h2 class="card-text">@ViewBag.TotalManufacturers</h2>
+                    <small>Registered manufacturers</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Dealers</h5>
+                    <h2 class="card-text">@ViewBag.TotalDealers</h2>
+                    <small>Active dealers</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Vehicle Models</h5>
+                    <h2 class="card-text">@ViewBag.TotalVehicleModels</h2>
+                    <small>Available models</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">System Management</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6>User Management</h6>
+                            <div class="list-group">
+                                <a href="@Url.Action("ManageUsers")" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-users"></i> Manage Users
+                                </a>
+                                <a href="@Url.Action("ManageUsers", new { section = "roles" })" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-user-tag"></i> User Roles & Permissions
+                                </a>
+                                <a href="@Url.Action("SystemReports", new { type = "users" })" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-chart-bar"></i> User Activity Reports
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>Business Management</h6>
+                            <div class="list-group">
+                                <a href="@Url.Action("ManageManufacturers")" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-industry"></i> Manage Manufacturers
+                                </a>
+                                <a href="@Url.Action("ManageDealers")" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-store"></i> Manage Dealers
+                                </a>
+                                <a href="@Url.Action("SystemReports", new { type = "business" })" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-chart-line"></i> Business Reports
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>System Administration</h6>
+                            <div class="list-group">
+                                <a href="@Url.Action("Settings")" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-cogs"></i> System Settings
+                                </a>
+                                <a href="@Url.Action("SystemReports", new { type = "system" })" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-server"></i> System Reports
+                                </a>
+                                <a href="@Url.Action("Settings", new { section = "backup" })" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-database"></i> Backup & Maintenance
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Recent System Activity</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">No recent system activity to display.</p>
+                    <small class="text-muted">System logs and user activities will appear here.</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">System Health</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="text-center">
+                                <i class="fas fa-check-circle text-success fa-2x"></i>
+                                <div class="mt-2">
+                                    <small>Database</small><br>
+                                    <span class="badge bg-success">Online</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <i class="fas fa-check-circle text-success fa-2x"></i>
+                                <div class="mt-2">
+                                    <small>Application</small><br>
+                                    <span class="badge bg-success">Running</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Platform Overview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 text-center">
+                            <h4 class="text-primary">0</h4>
+                            <small class="text-muted">Total Orders</small>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h4 class="text-success">$0</h4>
+                            <small class="text-muted">Total Revenue</small>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h4 class="text-info">0</h4>
+                            <small class="text-muted">Active Customers</small>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h4 class="text-warning">0</h4>
+                            <small class="text-muted">Pending Orders</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

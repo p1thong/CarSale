@@ -1,0 +1,154 @@
+@model ASM1.Repository.Models.VehicleVariant
+@{
+    ViewData["Title"] = "Edit Vehicle Variant";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3">Edit Vehicle Variant</h1>
+                    <p class="text-muted">Update variant information</p>
+                </div>
+                <div>
+                    <a href="@Url.Action("VehicleVariants", new { modelId = Model.VehicleModelId })" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Variants
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-edit"></i> Edit Variant: @Model.Version
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="EditVehicleVariant" method="post">
+                        <input asp-for="VariantId" type="hidden" />
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="VehicleModelId" class="form-label">Vehicle Model *</label>
+                                    <select asp-for="VehicleModelId" class="form-select" asp-items="ViewBag.VehicleModels">
+                                        <option value="">Select a vehicle model...</option>
+                                    </select>
+                                    <span asp-validation-for="VehicleModelId" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Version" class="form-label">Version *</label>
+                                    <input asp-for="Version" class="form-control" placeholder="e.g., 2.0L CVT, Manual, Premium" />
+                                    <span asp-validation-for="Version" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Color" class="form-label">Color</label>
+                                    <input asp-for="Color" type="color" class="form-control form-control-color" />
+                                    <span asp-validation-for="Color" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="ProductYear" class="form-label">Production Year</label>
+                                    <input asp-for="ProductYear" type="number" class="form-control" min="2000" max="2030" />
+                                    <span asp-validation-for="ProductYear" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Price" class="form-label">Price (VNĐ)</label>
+                                    <input asp-for="Price" type="number" class="form-control" step="1000" min="0" />
+                                    <span asp-validation-for="Price" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="@Url.Action("VehicleVariants", new { modelId = Model.VehicleModelId })" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Update Variant
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Current Information</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">Model:</dt>
+                        <dd class="col-sm-8">@Model.VehicleModel?.Name</dd>
+                        
+                        <dt class="col-sm-4">Version:</dt>
+                        <dd class="col-sm-8">@Model.Version</dd>
+                        
+                        <dt class="col-sm-4">Year:</dt>
+                        <dd class="col-sm-8">@Model.ProductYear</dd>
+                        
+                        <dt class="col-sm-4">Price:</dt>
+                        <dd class="col-sm-8">@(Model.Price?.ToString("N0")) VNĐ</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="card-title mb-0 text-danger">Danger Zone</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small">Deleting this variant will permanently remove it from the system.</p>
+                    <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                        <i class="fas fa-trash"></i> Delete Variant
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the variant <strong>@Model.Version</strong>?</p>
+                <p class="text-muted">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form asp-action="DeleteVehicleVariant" method="post" class="d-inline">
+                    <input name="id" value="@Model.VariantId" type="hidden" />
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

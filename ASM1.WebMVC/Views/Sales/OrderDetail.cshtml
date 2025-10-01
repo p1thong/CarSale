@@ -1,0 +1,235 @@
+@model ASM1.Repository.Models.Order
+
+@{
+    ViewData["Title"] = "Chi tiết đơn hàng";
+    var salesContract = ViewBag.SalesContract as ASM1.Repository.Models.SalesContract;
+    var payments = ViewBag.Payments as IEnumerable<ASM1.Repository.Models.Payment>;
+    var remainingBalance = ViewBag.RemainingBalance as decimal?;
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Chi tiết đơn hàng #@Model.OrderId</h2>
+                <div>
+                    <a asp-action="Orders" class="btn btn-outline-secondary me-2">
+                        <i class="fa fa-arrow-left"></i> Quay lại
+                    </a>
+                    <a asp-action="OrderPayments" asp-route-orderId="@Model.OrderId" class="btn btn-info">
+                        <i class="fa fa-credit-card"></i> Quản lý thanh toán
+                    </a>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Thông tin đơn hàng -->
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Thông tin đơn hàng</h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Mã đơn:</strong> #@Model.OrderId</p>
+                            <p><strong>Ngày đặt:</strong> @Model.OrderDate?.ToString("dd/MM/yyyy")</p>
+                            <p><strong>Trạng thái:</strong> 
+                                <span class="badge @GetStatusBadgeClass(Model.Status)">@Model.Status</span>
+                            </p>
+                            <p><strong>Xe:</strong> @Model.Variant.VehicleModel.Name - @Model.Variant.Version</p>
+                            <p><strong>Màu sắc:</strong> @Model.Variant.Color</p>
+                            <p><strong>Giá bán:</strong> @(Model.Variant.Price?.ToString("#,##0") ?? "Chưa có") VNĐ</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Thông tin khách hàng -->
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Thông tin khách hàng</h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Họ tên:</strong> @Model.Customer.FullName</p>
+                            <p><strong>Email:</strong> @Model.Customer.Email</p>
+                            <p><strong>Điện thoại:</strong> @Model.Customer.Phone</p>
+                            <p><strong>Ngày sinh:</strong> @(Model.Customer.Birthday?.ToDateTime(TimeOnly.MinValue).ToString("dd/MM/yyyy") ?? "Chưa có thông tin")</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-4">
+                <!-- Hợp đồng bán xe -->
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5>Hợp đồng bán xe</h5>
+                            @if (salesContract == null)
+                            {
+                                <a asp-action="CreateSalesContract" asp-route-orderId="@Model.OrderId" 
+                                   class="btn btn-sm btn-success">
+                                    <i class="fa fa-plus"></i> Tạo hợp đồng
+                                </a>
+                            }
+                        </div>
+                        <div class="card-body">
+                            @if (salesContract != null)
+                            {
+                                <p><strong>Mã hợp đồng:</strong> #@salesContract.SaleContractId</p>
+                                <p><strong>Ngày ký:</strong> @salesContract.ContractDate?.ToDateTime(TimeOnly.MinValue).ToString("dd/MM/yyyy")</p>
+                                <p><strong>Tổng giá trị:</strong> @(salesContract.TotalAmount?.ToString("#,##0") ?? "0") VNĐ</p>
+                                <p><strong>Điều khoản:</strong></p>
+                                <div class="border p-2 bg-light">
+                                    <small>@Html.Raw(salesContract.Terms?.Replace("\n", "<br/>"))</small>
+                                </div>
+                            }
+                            else
+                            {
+                                <p class="text-muted">Chưa có hợp đồng bán xe</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Thông tin thanh toán -->
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Tình trạng thanh toán</h5>
+                        </div>
+                        <div class="card-body">
+                            @if (salesContract != null)
+                            {
+                                <p><strong>Tổng giá trị:</strong> @(salesContract.TotalAmount?.ToString("#,##0") ?? "0") VNĐ</p>
+                                <p><strong>Đã thanh toán:</strong> @(((salesContract.TotalAmount ?? 0) - (remainingBalance ?? 0)).ToString("#,##0")) VNĐ</p>
+                                <p><strong>Còn lại:</strong> 
+                                    <span class="@(remainingBalance > 0 ? "text-danger" : "text-success")">
+                                        @(remainingBalance?.ToString("#,##0") ?? "0") VNĐ
+                                    </span>
+                                </p>
+                                
+                                @if (remainingBalance > 0)
+                                {
+                                    <div class="progress mb-3">
+                                        @{
+                                            var paidPercentage = salesContract.TotalAmount > 0 ? 
+                                                ((salesContract.TotalAmount - remainingBalance) / salesContract.TotalAmount * 100) : 0;
+                                        }
+                                        <div class="progress-bar" role="progressbar" 
+                                             style="width: @paidPercentage%" 
+                                             aria-valuenow="@paidPercentage" 
+                                             aria-valuemin="0" aria-valuemax="100">
+                                            @Math.Round(paidPercentage ?? 0, 1)%
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="alert alert-success">
+                                        <i class="fa fa-check-circle"></i> Đã thanh toán đầy đủ
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <p class="text-muted">Cần tạo hợp đồng trước khi thanh toán</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lịch sử thanh toán -->
+            @if (payments != null && payments.Any())
+            {
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Lịch sử thanh toán</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Ngày</th>
+                                                <th>Số tiền</th>
+                                                <th>Phương thức</th>
+                                                <th>Trạng thái</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var payment in payments)
+                                            {
+                                                <tr>
+                                                    <td>@(payment.PaymentDate?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa có")</td>
+                                                    <td>@(payment.Amount?.ToString("#,##0") ?? "0") VNĐ</td>
+                                                    <td>@payment.PaymentMethod</td>
+                                                    <td>
+                                                        <span class="badge bg-success">Hoàn thành</span>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Actions -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Thao tác</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="btn-group" role="group">
+                                @if (Model.Status == "Pending" && salesContract != null)
+                                {
+                                    <form asp-action="UpdateOrderStatus" method="post" class="d-inline">
+                                        <input type="hidden" name="orderId" value="@Model.OrderId" />
+                                        <input type="hidden" name="status" value="Approved" />
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fa fa-check"></i> Duyệt đơn hàng
+                                        </button>
+                                    </form>
+                                }
+                                
+                                @if (remainingBalance == 0 && Model.Status != "Completed")
+                                {
+                                    <form asp-action="CompleteOrder" method="post" class="d-inline">
+                                        <input type="hidden" name="orderId" value="@Model.OrderId" />
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fa fa-car"></i> Giao xe
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Pending" => "bg-warning",
+            "Approved" => "bg-info",
+            "Contract Signed" => "bg-success",
+            "Payment Processing" => "bg-primary",
+            "Completed" => "bg-success",
+            "Cancelled" => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+}

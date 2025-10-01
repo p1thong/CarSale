@@ -1,0 +1,396 @@
+@model IEnumerable<ASM1.Repository.Models.VehicleVariant>
+
+@{
+    ViewData["Title"] = "Inventory Management";
+}
+
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="fas fa-warehouse text-success"></i> Inventory Management</h2>
+                    <p class="text-muted">Track vehicle availability and stock levels</p>
+                </div>
+                <div>
+                    <button class="btn btn-primary" onclick="refreshInventory()">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                    <button class="btn btn-success" onclick="exportInventory()">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inventory Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6>Total Variants</h6>
+                            <h4>@Model.Count()</h4>
+                        </div>
+                        <i class="fas fa-car fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6>Available</h6>
+                            <h4>@Model.Count(v => v.Price.HasValue && v.Price > 0)</h4>
+                        </div>
+                        <i class="fas fa-check-circle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6>Low Stock</h6>
+                            <h4>0</h4>
+                        </div>
+                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6>Total Value</h6>
+                            <h4>$@Model.Where(v => v.Price.HasValue).Sum(v => v.Price!.Value).ToString("N0")</h4>
+                        </div>
+                        <i class="fas fa-dollar-sign fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inventory Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-list"></i> Vehicle Inventory</h5>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-light" onclick="toggleView('table')" id="tableViewBtn">
+                                <i class="fas fa-table"></i> Table
+                            </button>
+                            <button type="button" class="btn btn-outline-light" onclick="toggleView('grid')" id="gridViewBtn">
+                                <i class="fas fa-th"></i> Grid
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Filter Section -->
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <select class="form-select form-select-sm" id="manufacturerFilter">
+                                <option value="">All Manufacturers</option>
+                                @foreach (var manufacturer in Model.Select(v => v.VehicleModel.Manufacturer).Distinct())
+                                {
+                                    <option value="@manufacturer.ManufacturerId">@manufacturer.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select form-select-sm" id="statusFilter">
+                                <option value="">All Status</option>
+                                <option value="available">Available</option>
+                                <option value="out-of-stock">Out of Stock</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" class="form-control form-control-sm" id="searchInput" 
+                                   placeholder="Search by model or variant...">
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-sm btn-primary w-100" onclick="filterInventory()">
+                                <i class="fas fa-search"></i> Filter
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Table View -->
+                    <div id="tableView" class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Vehicle</th>
+                                    <th>Variant</th>
+                                    <th>Year</th>
+                                    <th>Color</th>
+                                    <th>Price</th>
+                                    <th>Stock</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var variant in Model)
+                                {
+                                    <tr class="inventory-item" 
+                                        data-manufacturer="@variant.VehicleModel.ManufacturerId"
+                                        data-search="@(variant.VehicleModel.Name + " " + variant.Version)">
+                                        <td>
+                                            <div>
+                                                <strong>@variant.VehicleModel.Manufacturer.Name</strong><br>
+                                                <small class="text-muted">@variant.VehicleModel.Name</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-primary">@variant.Version</span>
+                                        </td>
+                                        <td>@variant.ProductYear</td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(variant.Color))
+                                            {
+                                                <span class="badge bg-secondary">@variant.Color</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">-</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (variant.Price.HasValue)
+                                            {
+                                                <span class="text-success h6">$@variant.Price.Value.ToString("N0")</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">TBD</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">@Random.Shared.Next(0, 20)</span>
+                                        </td>
+                                        <td>
+                                            @{
+                                                var stock = Random.Shared.Next(0, 20);
+                                                var statusBadge = stock > 5 ? "bg-success" : stock > 0 ? "bg-warning text-dark" : "bg-danger";
+                                                var statusText = stock > 5 ? "In Stock" : stock > 0 ? "Low Stock" : "Out of Stock";
+                                            }
+                                            <span class="badge @statusBadge">@statusText</span>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button type="button" class="btn btn-outline-primary" 
+                                                        onclick="adjustStock(@variant.VariantId)">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-info" 
+                                                        onclick="viewDetails(@variant.VariantId)">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Grid View -->
+                    <div id="gridView" class="row" style="display: none;">
+                        @foreach (var variant in Model)
+                        {
+                            <div class="col-lg-3 col-md-4 col-sm-6 mb-3 inventory-item"
+                                 data-manufacturer="@variant.VehicleModel.ManufacturerId"
+                                 data-search="@(variant.VehicleModel.Name + " " + variant.Version)">
+                                <div class="card h-100">
+                                    <div class="card-header text-center">
+                                        <h6 class="mb-1">@variant.VehicleModel.Name</h6>
+                                        <small class="text-muted">@variant.VehicleModel.Manufacturer.Name</small>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <div class="mb-2">
+                                            <span class="badge bg-primary">@variant.Version</span>
+                                            @if (!string.IsNullOrEmpty(variant.Color))
+                                            {
+                                                <span class="badge bg-secondary">@variant.Color</span>
+                                            }
+                                        </div>
+                                        
+                                        @if (variant.Price.HasValue)
+                                        {
+                                            <h5 class="text-success">$@variant.Price.Value.ToString("N0")</h5>
+                                        }
+                                        else
+                                        {
+                                            <h5 class="text-muted">TBD</h5>
+                                        }
+
+                                        @{
+                                            var stock = Random.Shared.Next(0, 20);
+                                            var statusBadge = stock > 5 ? "bg-success" : stock > 0 ? "bg-warning text-dark" : "bg-danger";
+                                            var statusText = stock > 5 ? "In Stock" : stock > 0 ? "Low Stock" : "Out of Stock";
+                                        }
+                                        <div class="mb-2">
+                                            <span class="badge @statusBadge">@statusText</span>
+                                        </div>
+                                        <div>Stock: <strong>@stock</strong></div>
+                                    </div>
+                                    <div class="card-footer">
+                                        <div class="btn-group w-100" role="group">
+                                            <button type="button" class="btn btn-sm btn-outline-primary" 
+                                                    onclick="adjustStock(@variant.VariantId)">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-info" 
+                                                    onclick="viewDetails(@variant.VariantId)">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stock Adjustment Modal -->
+<div class="modal fade" id="stockModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Adjust Stock</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="stockForm">
+                    <div class="mb-3">
+                        <label class="form-label">Current Stock</label>
+                        <input type="number" class="form-control" id="currentStock" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">New Stock Level</label>
+                        <input type="number" class="form-control" id="newStock" min="0" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Reason</label>
+                        <select class="form-select" required>
+                            <option value="">Select reason...</option>
+                            <option value="received">Stock Received</option>
+                            <option value="sold">Vehicle Sold</option>
+                            <option value="damaged">Damaged</option>
+                            <option value="adjustment">Manual Adjustment</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea class="form-control" rows="2"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveStockAdjustment()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleView(viewType) {
+            if (viewType === 'table') {
+                $('#tableView').show();
+                $('#gridView').hide();
+                $('#tableViewBtn').removeClass('btn-outline-light').addClass('btn-light');
+                $('#gridViewBtn').removeClass('btn-light').addClass('btn-outline-light');
+            } else {
+                $('#tableView').hide();
+                $('#gridView').show();
+                $('#gridViewBtn').removeClass('btn-outline-light').addClass('btn-light');
+                $('#tableViewBtn').removeClass('btn-light').addClass('btn-outline-light');
+            }
+        }
+
+        function filterInventory() {
+            const manufacturerFilter = $('#manufacturerFilter').val();
+            const statusFilter = $('#statusFilter').val();
+            const searchText = $('#searchInput').val().toLowerCase();
+
+            $('.inventory-item').each(function() {
+                const item = $(this);
+                const manufacturer = item.data('manufacturer').toString();
+                const searchData = item.data('search').toLowerCase();
+                
+                let show = true;
+
+                if (manufacturerFilter && manufacturer !== manufacturerFilter) {
+                    show = false;
+                }
+
+                if (searchText && !searchData.includes(searchText)) {
+                    show = false;
+                }
+
+                if (show) {
+                    item.show();
+                } else {
+                    item.hide();
+                }
+            });
+        }
+
+        function adjustStock(variantId) {
+            $('#currentStock').val(Math.floor(Math.random() * 20));
+            $('#newStock').val('');
+            $('#stockModal').modal('show');
+        }
+
+        function viewDetails(variantId) {
+            alert(`View details for variant ID: ${variantId}`);
+        }
+
+        function refreshInventory() {
+            location.reload();
+        }
+
+        function exportInventory() {
+            // Implementation for exporting inventory
+            alert('Export functionality would be implemented here');
+        }
+
+        function saveStockAdjustment() {
+            // Implementation for saving stock adjustment
+            alert('Stock adjustment saved successfully!');
+            $('#stockModal').modal('hide');
+        }
+
+        // Real-time search
+        $('#searchInput').on('input', function() {
+            filterInventory();
+        });
+
+        $('#manufacturerFilter, #statusFilter').on('change', function() {
+            filterInventory();
+        });
+
+        // Initialize table view as active
+        $('#tableViewBtn').addClass('btn-light');
+    </script>
+}

@@ -1,0 +1,504 @@
+@{
+    ViewData["Title"] = "Feedback Management";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="h3 mb-1">
+                        <i class="fas fa-comments text-primary"></i> Customer Feedback Management
+                    </h2>
+                    <p class="text-muted">Monitor and respond to customer feedback and reviews</p>
+                </div>
+                <div>
+                    <button class="btn btn-outline-primary me-2" onclick="exportFeedbacks()">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                    <div class="btn-group">
+                        <button class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="fas fa-filter"></i> Filter
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" onclick="filterByRating(5)">5 Stars</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="filterByRating(4)">4 Stars</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="filterByRating(3)">3 Stars</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="filterByRating(2)">2 Stars</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="filterByRating(1)">1 Star</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="showAllFeedbacks()">Show All</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">4.2</h4>
+                            <p class="mb-0">Average Rating</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-star fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">1,248</h4>
+                            <p class="mb-0">Total Reviews</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-comments fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">23</h4>
+                            <p class="mb-0">Pending Response</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-clock fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">89%</h4>
+                            <p class="mb-0">Satisfaction Rate</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-thumbs-up fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters and Search -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row align-items-end">
+                        <div class="col-md-3 mb-2">
+                            <label class="form-label">Search</label>
+                            <input type="text" class="form-control" id="searchInput" placeholder="Search feedbacks...">
+                        </div>
+                        <div class="col-md-2 mb-2">
+                            <label class="form-label">Rating</label>
+                            <select class="form-select" id="ratingFilter">
+                                <option value="">All Ratings</option>
+                                <option value="5">5 Stars</option>
+                                <option value="4">4 Stars</option>
+                                <option value="3">3 Stars</option>
+                                <option value="2">2 Stars</option>
+                                <option value="1">1 Star</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 mb-2">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" id="statusFilter">
+                                <option value="">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="responded">Responded</option>
+                                <option value="resolved">Resolved</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 mb-2">
+                            <label class="form-label">Date Range</label>
+                            <select class="form-select" id="dateFilter">
+                                <option value="">All Time</option>
+                                <option value="today">Today</option>
+                                <option value="week">This Week</option>
+                                <option value="month">This Month</option>
+                                <option value="quarter">This Quarter</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary flex-fill" onclick="applyFilters()">
+                                    <i class="fas fa-search"></i> Search
+                                </button>
+                                <button class="btn btn-outline-secondary" onclick="clearFilters()">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedbacks List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Customer Feedbacks</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Customer</th>
+                                    <th>Vehicle</th>
+                                    <th>Rating</th>
+                                    <th>Feedback</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="feedbacksTableBody">
+                                <!-- Sample feedback entries -->
+                                <tr class="feedback-row" data-rating="5" data-status="pending">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm bg-primary rounded-circle d-flex align-items-center justify-content-center me-2">
+                                                <span class="text-white fw-bold">JD</span>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold">John Doe</div>
+                                                <small class="text-muted">john.doe@email.com</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <div class="fw-bold">Toyota Camry 2024</div>
+                                            <small class="text-muted">LE Trim</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="star-rating">
+                                            <i class="fas fa-star text-warning"></i>
+                                            <i class="fas fa-star text-warning"></i>
+                                            <i class="fas fa-star text-warning"></i>
+                                            <i class="fas fa-star text-warning"></i>
+                                            <i class="fas fa-star text-warning"></i>
+                                            <span class="ms-1">(5.0)</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="feedback-text">
+                                            "Excellent service and amazing vehicle. Very satisfied with the purchase experience..."
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>Dec 18, 2024</div>
+                                        <small class="text-muted">3:45 PM</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-warning">Pending Response</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group-sm">
+                                            <button class="btn btn-outline-primary btn-sm" onclick="respondToFeedback(1)">
+                                                <i class="fas fa-reply"></i>
+                                            </button>
+                                            <button class="btn btn-outline-info btn-sm" onclick="viewFeedbackDetails(1)">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr class="feedback-row" data-rating="4" data-status="responded">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm bg-success rounded-circle d-flex align-items-center justify-content-center me-2">
+                                                <span class="text-white fw-bold">MS</span>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold">Mary Smith</div>
+                                                <small class="text-muted">mary.smith@email.com</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <div class="fw-bold">BMW X5 2024</div>
+                                            <small class="text-muted">xDrive40i</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="star-rating">
+                                            <i class="fas fa-star text-warning"></i>
+                                            <i class="fas fa-star text-warning"></i>
+                                            <i class="fas fa-star text-warning"></i>
+                                            <i class="fas fa-star text-warning"></i>
+                                            <i class="far fa-star text-muted"></i>
+                                            <span class="ms-1">(4.0)</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="feedback-text">
+                                            "Good experience overall. The car is great but delivery took longer than expected..."
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>Dec 17, 2024</div>
+                                        <small class="text-muted">1:20 PM</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success">Responded</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group-sm">
+                                            <button class="btn btn-outline-secondary btn-sm" onclick="viewResponse(2)">
+                                                <i class="fas fa-comment"></i>
+                                            </button>
+                                            <button class="btn btn-outline-info btn-sm" onclick="viewFeedbackDetails(2)">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr class="feedback-row" data-rating="2" data-status="pending">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm bg-warning rounded-circle d-flex align-items-center justify-content-center me-2">
+                                                <span class="text-white fw-bold">RJ</span>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold">Robert Johnson</div>
+                                                <small class="text-muted">robert.j@email.com</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <div class="fw-bold">Ford F-150 2024</div>
+                                            <small class="text-muted">XLT Trim</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="star-rating">
+                                            <i class="fas fa-star text-warning"></i>
+                                            <i class="fas fa-star text-warning"></i>
+                                            <i class="far fa-star text-muted"></i>
+                                            <i class="far fa-star text-muted"></i>
+                                            <i class="far fa-star text-muted"></i>
+                                            <span class="ms-1">(2.0)</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="feedback-text">
+                                            "Service was disappointing. Had multiple issues with paperwork and communication..."
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>Dec 16, 2024</div>
+                                        <small class="text-muted">10:15 AM</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-danger">Urgent Response Needed</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group-sm">
+                                            <button class="btn btn-outline-danger btn-sm" onclick="respondToFeedback(3)">
+                                                <i class="fas fa-exclamation-triangle"></i>
+                                            </button>
+                                            <button class="btn btn-outline-info btn-sm" onclick="viewFeedbackDetails(3)">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Response Modal -->
+<div class="modal fade" id="responseModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-reply"></i> Respond to Feedback
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="feedback-summary mb-3 p-3 bg-light rounded">
+                    <div id="feedbackSummary">
+                        <!-- Feedback summary will be loaded here -->
+                    </div>
+                </div>
+                
+                <form id="responseForm">
+                    <div class="mb-3">
+                        <label class="form-label">Response Type</label>
+                        <select class="form-select" name="responseType" required>
+                            <option value="">-- Select Response Type --</option>
+                            <option value="thank_you">Thank You</option>
+                            <option value="apology">Apology</option>
+                            <option value="follow_up">Follow-up Required</option>
+                            <option value="resolution">Issue Resolution</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Response Message</label>
+                        <textarea class="form-control" name="responseMessage" rows="5" 
+                                  placeholder="Write your response to the customer..." required></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="followUpRequired" id="followUpRequired">
+                            <label class="form-check-label" for="followUpRequired">
+                                Schedule follow-up contact
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3" id="followUpDate" style="display: none;">
+                        <label class="form-label">Follow-up Date</label>
+                        <input type="date" class="form-control" name="followUpDate">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="sendResponse()">
+                    <i class="fas fa-paper-plane"></i> Send Response
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Filter functionality
+        function applyFilters() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const ratingFilter = document.getElementById('ratingFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            const dateFilter = document.getElementById('dateFilter').value;
+            
+            const rows = document.querySelectorAll('.feedback-row');
+            let visibleCount = 0;
+            
+            rows.forEach(row => {
+                const rating = row.dataset.rating;
+                const status = row.dataset.status;
+                const text = row.textContent.toLowerCase();
+                
+                const matchesSearch = text.includes(searchTerm);
+                const matchesRating = !ratingFilter || rating === ratingFilter;
+                const matchesStatus = !statusFilter || status === statusFilter;
+                
+                if (matchesSearch && matchesRating && matchesStatus) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('ratingFilter').value = '';
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('dateFilter').value = '';
+            applyFilters();
+        }
+
+        function filterByRating(rating) {
+            document.getElementById('ratingFilter').value = rating;
+            applyFilters();
+        }
+
+        function showAllFeedbacks() {
+            clearFilters();
+        }
+
+        function respondToFeedback(feedbackId) {
+            // Load feedback details and show response modal
+            document.getElementById('feedbackSummary').innerHTML = `
+                <strong>Customer:</strong> John Doe<br>
+                <strong>Rating:</strong> ★★★★★ (5.0)<br>
+                <strong>Feedback:</strong> "Excellent service and amazing vehicle. Very satisfied with the purchase experience..."
+            `;
+            
+            new bootstrap.Modal(document.getElementById('responseModal')).show();
+        }
+
+        function viewFeedbackDetails(feedbackId) {
+            // Implementation for viewing full feedback details
+            alert('View feedback details functionality would be implemented here');
+        }
+
+        function viewResponse(feedbackId) {
+            // Implementation for viewing existing response
+            alert('View response functionality would be implemented here');
+        }
+
+        function sendResponse() {
+            const form = document.getElementById('responseForm');
+            const formData = new FormData(form);
+            
+            if (!formData.get('responseType') || !formData.get('responseMessage')) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            // Implementation for sending response
+            alert('Response sent successfully!');
+            bootstrap.Modal.getInstance(document.getElementById('responseModal')).hide();
+        }
+
+        function exportFeedbacks() {
+            // Implementation for exporting feedbacks
+            alert('Export functionality would be implemented here');
+        }
+
+        // Follow-up checkbox functionality
+        document.getElementById('followUpRequired').addEventListener('change', function() {
+            const followUpDate = document.getElementById('followUpDate');
+            followUpDate.style.display = this.checked ? 'block' : 'none';
+        });
+
+        // Real-time search
+        document.getElementById('searchInput').addEventListener('input', applyFilters);
+        document.getElementById('ratingFilter').addEventListener('change', applyFilters);
+        document.getElementById('statusFilter').addEventListener('change', applyFilters);
+        document.getElementById('dateFilter').addEventListener('change', applyFilters);
+    </script>
+}

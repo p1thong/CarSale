@@ -1,0 +1,180 @@
+@model ASM1.Repository.Models.VehicleVariant
+@{
+    ViewData["Title"] = "Chi tiết xe - " + Model.VehicleModel?.Name;
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-12 mb-3">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="@Url.Action("Index", "Home")">
+                            <i class="fas fa-home"></i> Trang chủ
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">Chi tiết xe</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Vehicle Image -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-body text-center bg-light" style="min-height: 400px;">
+                    @if (!string.IsNullOrEmpty(Model.VehicleModel?.ImageUrl))
+                    {
+                        <img src="@Model.VehicleModel.ImageUrl" alt="@Model.VehicleModel?.Name" 
+                             class="img-fluid rounded" style="max-height: 350px; object-fit: cover;">
+                    }
+                    else
+                    {
+                        <div class="d-flex align-items-center justify-content-center h-100">
+                            <i class="fas fa-car fa-8x text-muted"></i>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Vehicle Details -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="card-title mb-0">
+                        <i class="fas fa-car"></i> @Model.VehicleModel?.Name
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>Phiên bản:</strong></div>
+                        <div class="col-sm-8">@Model.Version</div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>Hãng sản xuất:</strong></div>
+                        <div class="col-sm-8">
+                            <span class="badge bg-info">@Model.VehicleModel?.Manufacturer?.Name</span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>Quốc gia:</strong></div>
+                        <div class="col-sm-8">@Model.VehicleModel?.Manufacturer?.Country</div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>Loại xe:</strong></div>
+                        <div class="col-sm-8">
+                            <span class="badge bg-secondary">@Model.VehicleModel?.Category</span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>Màu sắc:</strong></div>
+                        <div class="col-sm-8">
+                            <span class="badge bg-success">@Model.Color</span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>Năm sản xuất:</strong></div>
+                        <div class="col-sm-8">@Model.ProductYear</div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h3 class="text-success">
+                                <i class="fas fa-tag"></i> Giá bán: 
+                                <strong>@string.Format("{0:N0}", Model.Price) VND</strong>
+                            </h3>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="btn-group w-100" role="group">
+                                @if (ViewBag.IsLoggedIn == true)
+                                {
+                                    <a href="#" class="btn btn-success btn-lg">
+                                        <i class="fas fa-shopping-cart"></i> Đặt hàng
+                                    </a>
+                                    <a href="#" class="btn btn-info btn-lg">
+                                        <i class="fas fa-calendar"></i> Đăng ký lái thử
+                                    </a>
+                                    <a href="#" class="btn btn-warning btn-lg">
+                                        <i class="fas fa-calculator"></i> Báo giá
+                                    </a>
+                                }
+                                else
+                                {
+                                    <a href="@Url.Action("Login", "Auth")" class="btn btn-primary btn-lg w-100">
+                                        <i class="fas fa-sign-in-alt"></i> Đăng nhập để mua hàng
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <a href="@Url.Action("ScheduleTestDrive", "CustomerService", new { variantId = Model.VariantId })" 
+                                   class="btn btn-success btn-lg w-100">
+                                    <i class="fas fa-car"></i> Đăng ký lái thử
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <a href="@Url.Action("CreateOrder", "Sales", new { variantId = Model.VariantId })" 
+                                   class="btn btn-primary btn-lg w-100">
+                                    <i class="fas fa-shopping-cart"></i> Đặt hàng ngay
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manufacturer Information -->
+    @if (Model.VehicleModel?.Manufacturer != null)
+    {
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0">
+                            <i class="fas fa-industry"></i> Thông tin hãng sản xuất
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <strong>Tên hãng:</strong> @Model.VehicleModel.Manufacturer.Name
+                            </div>
+                            <div class="col-md-4">
+                                <strong>Quốc gia:</strong> @Model.VehicleModel.Manufacturer.Country
+                            </div>
+                            <div class="col-md-4">
+                                <strong>Địa chỉ:</strong> @Model.VehicleModel.Manufacturer.Address
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Back to list button -->
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <a href="@Url.Action("Index", "Home")" class="btn btn-outline-primary btn-lg">
+                <i class="fas fa-arrow-left"></i> Quay lại danh sách xe
+            </a>
+        </div>
+    </div>
+</div>

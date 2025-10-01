@@ -1,0 +1,96 @@
+@{
+    ViewData["Title"] = "Tạo hợp đồng bán xe";
+    var order = ViewBag.Order as ASM1.Repository.Models.Order;
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Tạo hợp đồng bán xe</h2>
+                <a asp-action="SalesContracts" class="btn btn-outline-secondary">
+                    <i class="fa fa-arrow-left"></i> Quay lại
+                </a>
+            </div>
+
+            @if (order != null)
+            {
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Thông tin đơn hàng</h5>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Mã đơn:</strong> #@order.OrderId</p>
+                                <p><strong>Khách hàng:</strong> @order.Customer.FullName</p>
+                                <p><strong>Email:</strong> @order.Customer.Email</p>
+                                <p><strong>Điện thoại:</strong> @order.Customer.Phone</p>
+                                <p><strong>Xe:</strong> @order.Variant.VehicleModel.Name - @order.Variant.Version</p>
+                                <p><strong>Ngày đặt:</strong> @order.OrderDate?.ToString("dd/MM/yyyy")</p>
+                                <p><strong>Trạng thái:</strong> 
+                                    <span class="badge bg-info">@order.Status</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Tạo hợp đồng</h5>
+                            </div>
+                            <div class="card-body">
+                                <form asp-action="CreateSalesContract" method="post">
+                                    <input type="hidden" name="orderId" value="@order.OrderId" />
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label">Tổng giá trị hợp đồng *</label>
+                                        <input type="number" name="totalAmount" class="form-control" 
+                                               step="0.01" min="0" required 
+                                               placeholder="Nhập tổng giá trị hợp đồng" />
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Điều khoản hợp đồng *</label>
+                                        <textarea name="terms" class="form-control" rows="6" required 
+                                                  placeholder="Nhập các điều khoản của hợp đồng...">
+Điều khoản hợp đồng bán xe:
+
+1. Bên A (Người bán): [Tên đại lý]
+2. Bên B (Người mua): @order.Customer.FullName
+3. Sản phẩm: @order.Variant.VehicleModel.Name - @order.Variant.Version
+
+Các điều khoản:
+- Xe được bảo hành theo chính sách của nhà sản xuất
+- Khách hàng có trách nhiệm thanh toán đầy đủ theo thỏa thuận
+- Giao xe sau khi hoàn tất thanh toán
+- Các tranh chấp được giải quyết theo pháp luật Việt Nam
+                                        </textarea>
+                                    </div>
+
+                                    <div class="d-grid gap-2">
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fa fa-file-signature"></i> Tạo hợp đồng
+                                        </button>
+                                        <a asp-action="SalesContracts" class="btn btn-outline-secondary">
+                                            Hủy bỏ
+                                        </a>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-danger">
+                    <h4>Lỗi!</h4>
+                    <p>Không thể tải thông tin đơn hàng.</p>
+                    <a asp-action="Orders" class="btn btn-primary">Quay lại danh sách đơn hàng</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>

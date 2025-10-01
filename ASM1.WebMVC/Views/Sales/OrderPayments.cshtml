@@ -1,0 +1,352 @@
+@model IEnumerable<ASM1.Repository.Models.Payment>
+
+@{
+    ViewData["Title"] = "Order Payments";
+    var orderId = ViewBag.OrderId;
+    var remainingBalance = ViewBag.RemainingBalance ?? 0;
+}
+
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="fas fa-credit-card text-success"></i> Payment Management</h2>
+                    <p class="text-muted">Order #@orderId - Payment tracking and processing</p>
+                </div>
+                <a asp-action="Orders" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Orders
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6>Total Paid</h6>
+                            <h4>$@Model.Sum(p => p.Amount ?? 0).ToString("N0")</h4>
+                        </div>
+                        <i class="fas fa-check-circle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card @(remainingBalance > 0 ? "bg-warning" : "bg-success") text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6>Remaining</h6>
+                            <h4>$@remainingBalance.ToString("N0")</h4>
+                        </div>
+                        <i class="fas @(remainingBalance > 0 ? "fa-exclamation-triangle" : "fa-check-circle") fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6>Payments</h6>
+                            <h4>@Model.Count()</h4>
+                        </div>
+                        <i class="fas fa-list fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-secondary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6>Status</h6>
+                            <h6>@(remainingBalance <= 0 ? "PAID" : "PENDING")</h6>
+                        </div>
+                        <i class="fas @(remainingBalance <= 0 ? "fa-thumbs-up" : "fa-clock") fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Payment History -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-history"></i> Payment History</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Payment ID</th>
+                                        <th>Date</th>
+                                        <th>Amount</th>
+                                        <th>Method</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var payment in Model.OrderByDescending(p => p.PaymentDate))
+                                    {
+                                        <tr>
+                                            <td>
+                                                <strong>#P@payment.PaymentId.ToString("000")</strong>
+                                            </td>
+                                            <td>@payment.PaymentDate?.ToString("dd/MM/yyyy HH:mm")</td>
+                                            <td>
+                                                <span class="h6 text-success">$@payment.Amount?.ToString("N0")</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-info">@payment.PaymentMethod</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge @GetPaymentStatusBadge(payment.Status)">
+                                                    @payment.Status
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <button type="button" class="btn btn-sm btn-outline-info" 
+                                                        onclick="viewPaymentDetails(@payment.PaymentId)">
+                                                    <i class="fas fa-eye"></i> Details
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                                <tfoot class="table-light">
+                                    <tr>
+                                        <th colspan="2">Total Paid:</th>
+                                        <th class="text-success">$@Model.Sum(p => p.Amount ?? 0).ToString("N0")</th>
+                                        <th colspan="3"></th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-credit-card fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No payments recorded yet</h5>
+                            <p class="text-muted">Process the first payment to get started</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Process New Payment -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-plus"></i> Process Payment</h5>
+                </div>
+                <div class="card-body">
+                    @if (remainingBalance > 0)
+                    {
+                        <form id="paymentForm" asp-action="ProcessPayment" method="post">
+                            <input type="hidden" name="orderId" value="@orderId" />
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Payment Amount *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" name="amount" id="paymentAmount" 
+                                           min="1" max="@remainingBalance" step="0.01" required>
+                                </div>
+                                <div class="form-text">
+                                    Maximum: $@remainingBalance.ToString("N2")
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Payment Method *</label>
+                                <select class="form-select" name="paymentMethod" required>
+                                    <option value="">Select Method...</option>
+                                    <option value="Cash">Cash</option>
+                                    <option value="Credit Card">Credit Card</option>
+                                    <option value="Bank Transfer">Bank Transfer</option>
+                                    <option value="Check">Check</option>
+                                    <option value="Finance">Financing</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Payment Note</label>
+                                <textarea class="form-control" rows="3" placeholder="Optional payment notes..."></textarea>
+                            </div>
+
+                            <!-- Quick Amount Buttons -->
+                            <div class="mb-3">
+                                <label class="form-label">Quick Amounts:</label>
+                                <div class="d-grid gap-2">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" 
+                                            onclick="setAmount(@(remainingBalance * 0.25))">
+                                        25% - $@((remainingBalance * 0.25).ToString("N0"))
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary btn-sm" 
+                                            onclick="setAmount(@(remainingBalance * 0.5))">
+                                        50% - $@((remainingBalance * 0.5).ToString("N0"))
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary btn-sm" 
+                                            onclick="setAmount(@remainingBalance)">
+                                        Full - $@remainingBalance.ToString("N0")
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-check"></i> Process Payment
+                                </button>
+                            </div>
+                        </form>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                            <h5 class="text-success">Order Fully Paid</h5>
+                            <p class="text-muted">All payments have been completed</p>
+                            <button type="button" class="btn btn-primary" onclick="generateReceipt()">
+                                <i class="fas fa-receipt"></i> Generate Receipt
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Payment Schedule -->
+            <div class="card mt-3">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="fas fa-calendar"></i> Payment Schedule</h6>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <!-- This would show upcoming payment installments -->
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-primary"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-1">Down Payment</h6>
+                                <small class="text-muted">Due: Today</small>
+                                <div class="text-success">$5,000</div>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-warning"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-1">1st Installment</h6>
+                                <small class="text-muted">Due: Next Month</small>
+                                <div class="text-warning">$10,000</div>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-secondary"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-1">Final Payment</h6>
+                                <small class="text-muted">Due: Delivery</small>
+                                <div class="text-secondary">$10,000</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetPaymentStatusBadge(string status)
+    {
+        return status switch
+        {
+            "Completed" => "bg-success",
+            "Pending" => "bg-warning text-dark",
+            "Failed" => "bg-danger",
+            "Cancelled" => "bg-secondary",
+            _ => "bg-info"
+        };
+    }
+}
+
+<style>
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    .timeline-item {
+        position: relative;
+        margin-bottom: 20px;
+    }
+    .timeline-marker {
+        position: absolute;
+        left: -34px;
+        top: 0;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 2px solid #fff;
+    }
+    .timeline-item:not(:last-child)::before {
+        content: '';
+        position: absolute;
+        left: -29px;
+        top: 12px;
+        width: 2px;
+        height: calc(100% + 8px);
+        background-color: #dee2e6;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        function setAmount(amount) {
+            $('#paymentAmount').val(amount.toFixed(2));
+        }
+
+        function viewPaymentDetails(paymentId) {
+            // Implementation for viewing payment details
+            alert(`View payment details for Payment #P${paymentId.toString().padStart(3, '0')}`);
+        }
+
+        function generateReceipt() {
+            // Implementation for generating receipt
+            window.open(`/Sales/Receipt/@orderId`, '_blank');
+        }
+
+        // Form validation
+        $('#paymentForm').on('submit', function(e) {
+            const amount = parseFloat($('#paymentAmount').val());
+            const maxAmount = @remainingBalance;
+            
+            if (amount > maxAmount) {
+                e.preventDefault();
+                alert(`Payment amount cannot exceed $${maxAmount.toLocaleString()}`);
+                return false;
+            }
+            
+            if (amount <= 0) {
+                e.preventDefault();
+                alert('Payment amount must be greater than 0');
+                return false;
+            }
+            
+            return confirm(`Process payment of $${amount.toLocaleString()}?`);
+        });
+    </script>
+}

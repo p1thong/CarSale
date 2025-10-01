@@ -1,0 +1,32 @@
+@{
+    var vehicleModels = ViewBag.VehicleModels as IEnumerable<ASM1.Repository.Models.VehicleModel>;
+}
+
+<div class="row">
+    <div class="col-12">
+        <h4 class="mb-3">Danh sách xe có sẵn</h4>
+        
+        @if (vehicleModels != null && vehicleModels.Any())
+        {
+            <div class="row">
+                @foreach (var vehicle in vehicleModels)
+                {
+                    <div class="col-md-4 col-sm-6 mb-3">
+                        <div class="border p-3 rounded">
+                            <h5>@vehicle.Name</h5>
+                            <p class="mb-1"><strong>Hãng:</strong> @(vehicle.Manufacturer?.Name ?? "N/A")</p>
+                            @if (!string.IsNullOrEmpty(vehicle.Category))
+                            {
+                                <p class="mb-1"><strong>Loại xe:</strong> @vehicle.Category</p>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <p class="text-muted">Hiện tại chưa có xe nào trong hệ thống.</p>
+        }
+    </div>
+</div>

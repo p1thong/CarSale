@@ -1,0 +1,590 @@
+@{
+    ViewData["Title"] = "Customer Care Report";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="h3 mb-1">
+                        <i class="fas fa-chart-bar text-primary"></i> Customer Care Analytics & Reports
+                    </h2>
+                    <p class="text-muted">Comprehensive insights into customer service performance</p>
+                </div>
+                <div>
+                    <div class="btn-group me-2">
+                        <button class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="fas fa-calendar"></i> Period
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" onclick="changePeriod('today')">Today</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="changePeriod('week')">This Week</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="changePeriod('month')">This Month</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="changePeriod('quarter')">This Quarter</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="changePeriod('year')">This Year</a></li>
+                        </ul>
+                    </div>
+                    <button class="btn btn-success" onclick="exportReport()">
+                        <i class="fas fa-file-excel"></i> Export
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics Dashboard -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h3 class="mb-1">4.2</h3>
+                            <p class="mb-0">Average Rating</p>
+                            <small class="text-white-50">
+                                <i class="fas fa-arrow-up"></i> +0.3 from last month
+                            </small>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-star fa-3x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h3 class="mb-1">89%</h3>
+                            <p class="mb-0">Satisfaction Rate</p>
+                            <small class="text-white-50">
+                                <i class="fas fa-arrow-up"></i> +5% from last month
+                            </small>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-thumbs-up fa-3x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h3 class="mb-1">2.5h</h3>
+                            <p class="mb-0">Avg Response Time</p>
+                            <small class="text-white-50">
+                                <i class="fas fa-arrow-down"></i> -30min improvement
+                            </small>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-clock fa-3x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h3 class="mb-1">156</h3>
+                            <p class="mb-0">Test Drives</p>
+                            <small class="text-white-50">
+                                <i class="fas fa-arrow-up"></i> +12% this month
+                            </small>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-car fa-3x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <!-- Customer Satisfaction Trend -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-line"></i> Customer Satisfaction Trend
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="satisfactionChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rating Distribution -->
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-pie"></i> Rating Distribution
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="ratingChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Service Performance & Test Drive Analytics -->
+    <div class="row mb-4">
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-users-cog"></i> Service Performance Metrics
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Metric</th>
+                                    <th>Current</th>
+                                    <th>Target</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>First Response Time</td>
+                                    <td>1.2 hours</td>
+                                    <td>< 2 hours</td>
+                                    <td><span class="badge bg-success">On Target</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Resolution Time</td>
+                                    <td>4.8 hours</td>
+                                    <td>< 8 hours</td>
+                                    <td><span class="badge bg-success">Excellent</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Customer Follow-up Rate</td>
+                                    <td>92%</td>
+                                    <td>> 90%</td>
+                                    <td><span class="badge bg-success">On Target</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Issue Escalation Rate</td>
+                                    <td>8%</td>
+                                    <td>< 10%</td>
+                                    <td><span class="badge bg-success">Good</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Customer Retention</td>
+                                    <td>85%</td>
+                                    <td>> 80%</td>
+                                    <td><span class="badge bg-success">Excellent</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-calendar-check"></i> Test Drive Analytics
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <div class="text-center">
+                                <h4 class="text-primary">156</h4>
+                                <small class="text-muted">Total Test Drives</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <h4 class="text-success">68%</h4>
+                                <small class="text-muted">Conversion Rate</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small>Scheduled</small>
+                            <small>124 (79%)</small>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-primary" style="width: 79%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small>Completed</small>
+                            <small>106 (68%)</small>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-success" style="width: 68%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small>Led to Purchase</small>
+                            <small>72 (46%)</small>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-warning" style="width: 46%"></div>
+                        </div>
+                    </div>
+
+                    <hr>
+                    
+                    <h6 class="mb-2">Popular Models for Test Drive</h6>
+                    <div class="small">
+                        <div class="d-flex justify-content-between">
+                            <span>Toyota Camry</span>
+                            <span class="fw-bold">32</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>BMW X5</span>
+                            <span class="fw-bold">28</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Honda Accord</span>
+                            <span class="fw-bold">24</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Reports Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-table"></i> Detailed Customer Service Reports
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <ul class="nav nav-tabs" id="reportTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="feedback-tab" data-bs-toggle="tab" data-bs-target="#feedback-report" type="button">
+                                <i class="fas fa-comments"></i> Feedback Report
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="testdrive-tab" data-bs-toggle="tab" data-bs-target="#testdrive-report" type="button">
+                                <i class="fas fa-car"></i> Test Drive Report
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="performance-tab" data-bs-toggle="tab" data-bs-target="#performance-report" type="button">
+                                <i class="fas fa-chart-bar"></i> Performance Report
+                            </button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content mt-3" id="reportTabContent">
+                        <!-- Feedback Report Tab -->
+                        <div class="tab-pane fade show active" id="feedback-report">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Customer</th>
+                                            <th>Rating</th>
+                                            <th>Category</th>
+                                            <th>Status</th>
+                                            <th>Response Time</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Dec 18, 2024</td>
+                                            <td>John Doe</td>
+                                            <td>
+                                                <div class="star-rating">
+                                                    <i class="fas fa-star text-warning"></i>
+                                                    <i class="fas fa-star text-warning"></i>
+                                                    <i class="fas fa-star text-warning"></i>
+                                                    <i class="fas fa-star text-warning"></i>
+                                                    <i class="fas fa-star text-warning"></i>
+                                                </div>
+                                            </td>
+                                            <td>Sales Experience</td>
+                                            <td><span class="badge bg-success">Responded</span></td>
+                                            <td>1.5 hours</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Dec 17, 2024</td>
+                                            <td>Mary Smith</td>
+                                            <td>
+                                                <div class="star-rating">
+                                                    <i class="fas fa-star text-warning"></i>
+                                                    <i class="fas fa-star text-warning"></i>
+                                                    <i class="fas fa-star text-warning"></i>
+                                                    <i class="fas fa-star text-warning"></i>
+                                                    <i class="far fa-star text-muted"></i>
+                                                </div>
+                                            </td>
+                                            <td>Delivery</td>
+                                            <td><span class="badge bg-success">Responded</span></td>
+                                            <td>2.2 hours</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Dec 16, 2024</td>
+                                            <td>Robert Johnson</td>
+                                            <td>
+                                                <div class="star-rating">
+                                                    <i class="fas fa-star text-warning"></i>
+                                                    <i class="fas fa-star text-warning"></i>
+                                                    <i class="far fa-star text-muted"></i>
+                                                    <i class="far fa-star text-muted"></i>
+                                                    <i class="far fa-star text-muted"></i>
+                                                </div>
+                                            </td>
+                                            <td>Service Quality</td>
+                                            <td><span class="badge bg-warning">Pending</span></td>
+                                            <td>-</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Test Drive Report Tab -->
+                        <div class="tab-pane fade" id="testdrive-report">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Customer</th>
+                                            <th>Vehicle</th>
+                                            <th>Status</th>
+                                            <th>Duration</th>
+                                            <th>Outcome</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Dec 18, 2024</td>
+                                            <td>Alice Wilson</td>
+                                            <td>Toyota Camry 2024</td>
+                                            <td><span class="badge bg-success">Completed</span></td>
+                                            <td>45 minutes</td>
+                                            <td><span class="badge bg-success">Purchase</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Dec 17, 2024</td>
+                                            <td>Mike Davis</td>
+                                            <td>BMW X5 2024</td>
+                                            <td><span class="badge bg-success">Completed</span></td>
+                                            <td>60 minutes</td>
+                                            <td><span class="badge bg-warning">Follow-up Scheduled</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Dec 19, 2024</td>
+                                            <td>Sarah Brown</td>
+                                            <td>Honda Accord 2024</td>
+                                            <td><span class="badge bg-primary">Scheduled</span></td>
+                                            <td>-</td>
+                                            <td>-</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Performance Report Tab -->
+                        <div class="tab-pane fade" id="performance-report">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Monthly Performance Trends</h6>
+                                    <canvas id="performanceChart" height="200"></canvas>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Department Performance</h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Department</th>
+                                                    <th>Avg Rating</th>
+                                                    <th>Response Time</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>Sales</td>
+                                                    <td>4.5</td>
+                                                    <td>1.8h</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Service</td>
+                                                    <td>4.2</td>
+                                                    <td>2.1h</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Parts</td>
+                                                    <td>4.0</td>
+                                                    <td>3.2h</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        // Customer Satisfaction Trend Chart
+        const ctx1 = document.getElementById('satisfactionChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                datasets: [{
+                    label: 'Average Rating',
+                    data: [3.8, 3.9, 4.0, 4.1, 4.0, 4.2, 4.1, 4.3, 4.2, 4.4, 4.2, 4.2],
+                    borderColor: '#007bff',
+                    backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'Response Rate %',
+                    data: [85, 87, 89, 88, 90, 92, 91, 93, 92, 94, 89, 89],
+                    borderColor: '#28a745',
+                    backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    yAxisID: 'y1'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 5,
+                        title: {
+                            display: true,
+                            text: 'Rating'
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        beginAtZero: true,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Response Rate %'
+                        },
+                        grid: {
+                            drawOnChartArea: false,
+                        },
+                    }
+                }
+            }
+        });
+
+        // Rating Distribution Chart
+        const ctx2 = document.getElementById('ratingChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                labels: ['5 Stars', '4 Stars', '3 Stars', '2 Stars', '1 Star'],
+                datasets: [{
+                    data: [45, 30, 15, 7, 3],
+                    backgroundColor: [
+                        '#28a745',
+                        '#20c997',
+                        '#ffc107',
+                        '#fd7e14',
+                        '#dc3545'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // Performance Chart
+        const ctx3 = document.getElementById('performanceChart').getContext('2d');
+        new Chart(ctx3, {
+            type: 'bar',
+            data: {
+                labels: ['Oct', 'Nov', 'Dec'],
+                datasets: [{
+                    label: 'Satisfaction Rate',
+                    data: [87, 89, 89],
+                    backgroundColor: '#007bff'
+                }, {
+                    label: 'Response Rate',
+                    data: [92, 94, 89],
+                    backgroundColor: '#28a745'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+
+        function changePeriod(period) {
+            alert(`Changing report period to: ${period}`);
+            // Implementation for changing report period
+        }
+
+        function exportReport() {
+            alert('Exporting report...');
+            // Implementation for exporting report
+        }
+    </script>
+}

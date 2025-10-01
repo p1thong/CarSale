@@ -1,0 +1,129 @@
+@{
+    ViewData["Title"] = "Dealer Dashboard - Sales Management";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-4">Dealer Dashboard</h1>
+            <p class="text-muted">Sales and Customer Management Portal</p>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Total Customers</h5>
+                    <h2 class="card-text">@(ViewBag.TotalCustomers ?? 0)</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Active Orders</h5>
+                    <h2 class="card-text">@(ViewBag.ActiveOrders ?? 0)</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Test Drives</h5>
+                    <h2 class="card-text">@(ViewBag.TotalTestDrives ?? 0)</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Quotations</h5>
+                    <h2 class="card-text">@(ViewBag.TotalQuotations ?? 0)</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6>Customer Management</h6>
+                            <div class="list-group">
+                                <a href="@Url.Action("Index", "Dealer", new { section = "customers" })" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-users"></i> Manage Customers
+                                </a>
+                                <a href="@Url.Action("CreateCustomer", "Dealer")" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-user-plus"></i> Add New Customer
+                                </a>
+                                <a href="@Url.Action("Index", "Dealer", new { section = "feedback" })" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-comments"></i> Customer Feedback
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>Sales Operations</h6>
+                            <div class="list-group">
+                                <a href="@Url.Action("Index", "Dealer", new { section = "quotations" })" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-file-invoice"></i> Manage Quotations
+                                </a>
+                                <a href="@Url.Action("Index", "Dealer", new { section = "orders" })" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-shopping-cart"></i> Manage Orders
+                                </a>
+                                <a href="@Url.Action("Index", "Dealer", new { section = "payments" })" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-credit-card"></i> Payment Tracking
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>Customer Service</h6>
+                            <div class="list-group">
+                                <a href="@Url.Action("Index", "Dealer", new { section = "testdrives" })" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-car"></i> Test Drive Scheduling
+                                </a>
+                                <a href="@Url.Action("SalesReport", "Dealer")" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-chart-bar"></i> Sales Reports
+                                </a>
+                                <a href="@Url.Action("CustomerCareReport", "Dealer")" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-heart"></i> Customer Care Report
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Today's Schedule -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Today's Test Drives</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">No test drives scheduled for today.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Recent Orders</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">No recent orders to display.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

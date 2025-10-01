@@ -1,0 +1,128 @@
+@model ASM1.Repository.Models.Manufacturer
+
+@{
+    ViewData["Title"] = "Create Manufacturer";
+}
+
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Create New Manufacturer</h1>
+        <a href="@Url.Action("Manufacturers")" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
+            <i class="fas fa-arrow-left fa-sm text-white-50"></i> Back to Manufacturers
+        </a>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Manufacturer Information</h6>
+                </div>
+                <div class="card-body">
+                    <form asp-action="CreateManufacturer" method="post">
+                        <div class="form-group">
+                            <label asp-for="Name" class="form-label">Manufacturer Name <span class="text-danger">*</span></label>
+                            <input asp-for="Name" class="form-control" placeholder="Enter manufacturer name (e.g., Toyota, BMW)" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Country" class="form-label">Country</label>
+                            <input asp-for="Country" class="form-control" placeholder="Enter country (e.g., Japan, Germany)" />
+                            <span asp-validation-for="Country" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Address" class="form-label">Address</label>
+                            <textarea asp-for="Address" class="form-control" rows="3" placeholder="Enter manufacturer address"></textarea>
+                            <span asp-validation-for="Address" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="d-flex justify-content-between">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Create Manufacturer
+                                </button>
+                                <a href="@Url.Action("Manufacturers")" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> Cancel
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-info">Tips</h6>
+                </div>
+                <div class="card-body">
+                    <div class="small text-muted">
+                        <p><strong>Name:</strong> Use the official manufacturer name as it appears in the market.</p>
+                        <p><strong>Country:</strong> The country where the manufacturer is headquartered.</p>
+                        <p><strong>Address:</strong> You can include the full headquarters address for reference.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-success">Quick Examples</h6>
+                </div>
+                <div class="card-body">
+                    <div class="small">
+                        <p><strong>Toyota:</strong><br>Country: Japan<br>Known for reliability and fuel efficiency</p>
+                        <p><strong>BMW:</strong><br>Country: Germany<br>Premium luxury vehicles</p>
+                        <p><strong>Ford:</strong><br>Country: USA<br>American automotive manufacturer</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        $(document).ready(function() {
+            // Auto-capitalize first letter of manufacturer name
+            $('#Name').on('input', function() {
+                var value = $(this).val();
+                if (value.length > 0) {
+                    $(this).val(value.charAt(0).toUpperCase() + value.slice(1));
+                }
+            });
+
+            // Form validation
+            $('form').on('submit', function(e) {
+                var name = $('#Name').val().trim();
+                if (name === '') {
+                    e.preventDefault();
+                    alert('Manufacturer name is required.');
+                    $('#Name').focus();
+                    return false;
+                }
+                
+                if (name.length < 2) {
+                    e.preventDefault();
+                    alert('Manufacturer name must be at least 2 characters long.');
+                    $('#Name').focus();
+                    return false;
+                }
+            });
+        });
+    </script>
+}

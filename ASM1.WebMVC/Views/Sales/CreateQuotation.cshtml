@@ -1,0 +1,372 @@
+@{
+    ViewData["Title"] = "Tạo báo giá";
+    var customerId = ViewBag.CustomerId;
+    var customer = ViewBag.Customer;
+    var vehicleVariants = ViewBag.VehicleVariants;
+    var customers = ViewBag.Customers;
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="fas fa-plus-circle text-success"></i> Create New Quotation</h2>
+                    <p class="text-muted">Generate a quotation for customer</p>
+                </div>
+                <a asp-action="Quotations" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Quotations
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-file-text"></i> Quotation Information</h5>
+                </div>
+                <div class="card-body">
+                    <form id="quotationForm" asp-action="CreateQuotation" method="post">
+                        <input type="hidden" name="customerId" value="@customerId" />
+                        
+                        <!-- Customer Selection -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <label class="form-label">Customer *</label>
+                                <div class="input-group">
+                                    <select class="form-select" name="customerId" id="customerSelect" required>
+                                        <option value="">Select Customer...</option>
+                                        <!-- Customers will be loaded via AJAX -->
+                                    </select>
+                                    <button type="button" class="btn btn-outline-primary" onclick="loadCustomers()">
+                                        <i class="fas fa-refresh"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Vehicle Selection -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">Manufacturer *</label>
+                                <select class="form-select" id="manufacturerSelect" onchange="loadModels()" required>
+                                    <option value="">Select Manufacturer...</option>
+                                    <!-- Manufacturers will be loaded via AJAX -->
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Vehicle Model *</label>
+                                <select class="form-select" id="modelSelect" onchange="loadVariants()" required>
+                                    <option value="">Select Model...</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <label class="form-label">Vehicle Variant *</label>
+                                <select class="form-select" name="variantId" id="variantSelect" onchange="updatePrice()" required>
+                                    <option value="">Select Variant...</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Pricing Section -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">Base Price</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="text" class="form-control" id="basePrice" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Discount (%)</label>
+                                <input type="number" class="form-control" id="discount" min="0" max="50" step="0.1" value="0" onchange="calculateFinalPrice()">
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">Additional Fees</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="additionalFees" min="0" step="100" value="0" onchange="calculateFinalPrice()">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Final Price *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" name="price" id="finalPrice" required readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Terms and Notes -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <label class="form-label">Terms & Conditions</label>
+                                <textarea class="form-control" rows="4" id="terms" placeholder="Enter quotation terms and conditions...">
+- Price valid for 30 days from quotation date
+- 10% deposit required to confirm order
+- Delivery time: 2-4 weeks
+- Warranty: 3 years or 100,000 km
+- Trade-in options available
+                                </textarea>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="resetForm()">
+                                        <i class="fas fa-undo"></i> Reset
+                                    </button>
+                                    <div>
+                                        <button type="button" class="btn btn-outline-primary me-2" onclick="previewQuotation()">
+                                            <i class="fas fa-eye"></i> Preview
+                                        </button>
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fas fa-save"></i> Create Quotation
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Panel -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-calculator"></i> Quotation Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div id="quotationSummary">
+                        <div class="text-center text-muted">
+                            <i class="fas fa-info-circle fa-2x mb-3"></i>
+                            <p>Fill in the form to see quotation summary</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Customer Info -->
+            <div class="card mt-3">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="mb-0"><i class="fas fa-user"></i> Customer Info</h6>
+                </div>
+                <div class="card-body">
+                    <div id="customerInfo">
+                        <div class="text-center text-muted">
+                            <i class="fas fa-user-circle fa-2x mb-2"></i>
+                            <p>Select customer to view details</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            loadCustomers();
+            loadManufacturers();
+            
+            @if(customerId != null)
+            {
+                <text>$('#customerSelect').val('@customerId').trigger('change');</text>
+            }
+        });
+
+        function loadCustomers() {
+            $.ajax({
+                url: '@Url.Action("GetCustomersJson")',
+                type: 'GET',
+                success: function(data) {
+                    let options = '<option value="">Select Customer...</option>';
+                    data.forEach(customer => {
+                        options += `<option value="${customer.value}">${customer.text}</option>`;
+                    });
+                    $('#customerSelect').html(options);
+                },
+                error: function() {
+                    $('#customerSelect').html('<option value="">Error loading customers</option>');
+                }
+            });
+        }
+
+        function loadManufacturers() {
+            $.ajax({
+                url: '@Url.Action("GetManufacturersJson")',
+                type: 'GET',
+                success: function(data) {
+                    let options = '<option value="">Select Manufacturer...</option>';
+                    data.forEach(manufacturer => {
+                        options += `<option value="${manufacturer.value}">${manufacturer.text}</option>`;
+                    });
+                    $('#manufacturerSelect').html(options);
+                },
+                error: function() {
+                    $('#manufacturerSelect').html('<option value="">Error loading manufacturers</option>');
+                }
+            });
+        }
+
+        function loadModels() {
+            const manufacturerId = $('#manufacturerSelect').val();
+            if (!manufacturerId) {
+                $('#modelSelect').html('<option value="">Select Model...</option>');
+                $('#variantSelect').html('<option value="">Select Variant...</option>');
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("GetModelsByManufacturerJson")',
+                type: 'GET',
+                data: { manufacturerId: manufacturerId },
+                success: function(data) {
+                    let options = '<option value="">Select Model...</option>';
+                    data.forEach(model => {
+                        options += `<option value="${model.value}">${model.text}</option>`;
+                    });
+                    $('#modelSelect').html(options);
+                    $('#variantSelect').html('<option value="">Select Variant...</option>');
+                },
+                error: function() {
+                    $('#modelSelect').html('<option value="">Error loading models</option>');
+                    $('#variantSelect').html('<option value="">Select Variant...</option>');
+                }
+            });
+        }
+
+        function loadVariants() {
+            const modelId = $('#modelSelect').val();
+            if (!modelId) {
+                $('#variantSelect').html('<option value="">Select Variant...</option>');
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("GetVariantsByModelJson")',
+                type: 'GET',
+                data: { modelId: modelId },
+                success: function(data) {
+                    let options = '<option value="">Select Variant...</option>';
+                    data.forEach(variant => {
+                        options += `<option value="${variant.value}" data-price="${variant.price}">${variant.text}</option>`;
+                    });
+                    $('#variantSelect').html(options);
+                },
+                error: function() {
+                    $('#variantSelect').html('<option value="">Error loading variants</option>');
+                }
+            });
+        }
+
+        function updatePrice() {
+            const selectedVariant = $('#variantSelect option:selected');
+            const basePrice = selectedVariant.data('price') || 0;
+            $('#basePrice').val(basePrice.toLocaleString());
+            calculateFinalPrice();
+            updateSummary();
+        }
+
+        function calculateFinalPrice() {
+            const basePrice = parseFloat($('#basePrice').val().replace(/,/g, '')) || 0;
+            const discount = parseFloat($('#discount').val()) || 0;
+            const additionalFees = parseFloat($('#additionalFees').val()) || 0;
+            
+            const discountAmount = basePrice * (discount / 100);
+            const finalPrice = basePrice - discountAmount + additionalFees;
+            
+            $('#finalPrice').val(finalPrice);
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const customerName = $('#customerSelect option:selected').text();
+            const vehicleName = $('#modelSelect option:selected').text() + ' - ' + $('#variantSelect option:selected').text();
+            const basePrice = $('#basePrice').val();
+            const discount = $('#discount').val();
+            const additionalFees = $('#additionalFees').val();
+            const finalPrice = $('#finalPrice').val();
+
+            if (finalPrice && finalPrice > 0) {
+                $('#quotationSummary').html(`
+                    <div class="mb-3">
+                        <h6>Customer:</h6>
+                        <p class="text-muted">${customerName.split('(')[0]}</p>
+                    </div>
+                    <div class="mb-3">
+                        <h6>Vehicle:</h6>
+                        <p class="text-muted">${vehicleName}</p>
+                    </div>
+                    <hr>
+                    <div class="row mb-2">
+                        <div class="col">Base Price:</div>
+                        <div class="col text-end">$${basePrice}</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col">Discount (${discount}%):</div>
+                        <div class="col text-end text-danger">-$${(parseFloat(basePrice.replace(/,/g, '')) * discount / 100).toLocaleString()}</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col">Additional Fees:</div>
+                        <div class="col text-end">$${parseFloat(additionalFees).toLocaleString()}</div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col"><strong>Final Price:</strong></div>
+                        <div class="col text-end"><strong class="text-success">$${parseFloat(finalPrice).toLocaleString()}</strong></div>
+                    </div>
+                `);
+            }
+        }
+
+        $('#customerSelect').change(function() {
+            const customerText = $(this).find('option:selected').text();
+            if (customerText && customerText !== 'Select Customer...') {
+                const [name, email] = customerText.split('(');
+                $('#customerInfo').html(`
+                    <div class="text-center">
+                        <i class="fas fa-user-circle fa-3x text-primary mb-2"></i>
+                        <h6>${name.trim()}</h6>
+                        <p class="text-muted">${email ? email.replace(')', '') : ''}</p>
+                    </div>
+                `);
+            }
+        });
+
+        function previewQuotation() {
+            // Implementation for quotation preview
+            alert('Quotation preview functionality');
+        }
+
+        function resetForm() {
+            if (confirm('Are you sure you want to reset the form?')) {
+                $('#quotationForm')[0].reset();
+                $('#quotationSummary').html(`
+                    <div class="text-center text-muted">
+                        <i class="fas fa-info-circle fa-2x mb-3"></i>
+                        <p>Fill in the form to see quotation summary</p>
+                    </div>
+                `);
+                $('#customerInfo').html(`
+                    <div class="text-center text-muted">
+                        <i class="fas fa-user-circle fa-2x mb-2"></i>
+                        <p>Select customer to view details</p>
+                    </div>
+                `);
+            }
+        }
+    </script>
+}

@@ -1,0 +1,246 @@
+@using ASM1.Repository.Models
+@model VehicleModel
+
+@{
+    ViewData["Title"] = "Create Vehicle Model";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="h3 mb-1">
+                        <i class="fas fa-plus-circle text-primary"></i> Create New Vehicle Model
+                    </h2>
+                    <p class="text-muted">Add a new vehicle model to the system</p>
+                </div>
+                <a asp-action="VehicleModels" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Models
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 col-md-10 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-car"></i> Vehicle Model Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="CreateVehicleModel" method="post" id="createModelForm">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                        
+                        <!-- Basic Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary border-bottom pb-2 mb-3">
+                                    <i class="fas fa-info-circle"></i> Basic Information
+                                </h6>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Name" class="form-label">
+                                    Model Name <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="Name" class="form-control" placeholder="e.g., Camry, Accord, X5" required />
+                                <span asp-validation-for="Name" class="text-danger"></span>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ManufacturerId" class="form-label">
+                                    Manufacturer <span class="text-danger">*</span>
+                                </label>
+                                <select asp-for="ManufacturerId" class="form-select" asp-items="@ViewBag.Manufacturers" required>
+                                    <option value="">-- Select Manufacturer --</option>
+                                </select>
+                                <span asp-validation-for="ManufacturerId" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Specifications -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary border-bottom pb-2 mb-3">
+                                    <i class="fas fa-cogs"></i> Specifications
+                                </h6>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Category" class="form-label">
+                                    Category <span class="text-danger">*</span>
+                                </label>
+                                <select asp-for="Category" class="form-select" required>
+                                    <option value="">-- Select Category --</option>
+                                    <option value="Sedan">Sedan</option>
+                                    <option value="SUV">SUV</option>
+                                    <option value="Hatchback">Hatchback</option>
+                                    <option value="Coupe">Coupe</option>
+                                    <option value="Convertible">Convertible</option>
+                                    <option value="Truck">Truck</option>
+                                    <option value="Van">Van</option>
+                                    <option value="Electric">Electric</option>
+                                    <option value="Hybrid">Hybrid</option>
+                                </select>
+                                <span asp-validation-for="Category" class="text-danger"></span>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ImageUrl" class="form-label">
+                                    Image URL <span class="text-muted">(Optional)</span>
+                                </label>
+                                <input asp-for="ImageUrl" class="form-control" placeholder="e.g., https://example.com/image.jpg" type="url" />
+                                <span asp-validation-for="ImageUrl" class="text-danger"></span>
+                                <small class="text-muted">Enter a valid URL for the vehicle model image</small>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <a asp-action="VehicleModels" class="btn btn-outline-secondary">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </a>
+                                    <div>
+                                        <button type="button" class="btn btn-outline-primary me-2" onclick="previewModel()">
+                                            <i class="fas fa-eye"></i> Preview
+                                        </button>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-save"></i> Create Model
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-eye"></i> Vehicle Model Preview
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="previewContent">
+                <!-- Preview content will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="$('#createModelForm').submit()">
+                    <i class="fas fa-save"></i> Create Model
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        function previewModel() {
+            const form = document.getElementById('createModelForm');
+            const formData = new FormData(form);
+            
+            let previewHtml = `
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0">Model Information</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Model Name:</strong> ${formData.get('Name') || 'Not specified'}<br>
+                                <strong>Manufacturer:</strong> ${$('#ManufacturerId option:selected').text() || 'Not selected'}<br>
+                                <strong>Category:</strong> ${formData.get('Category') || 'Not specified'}<br>
+                                <strong>Image URL:</strong> ${formData.get('ImageUrl') || 'Not specified'}
+                            </div>
+                            <div class="col-md-6">
+                                ${formData.get('ImageUrl') ? `<img src="${formData.get('ImageUrl')}" alt="Vehicle Model" class="img-fluid" style="max-height: 200px;" onerror="this.style.display='none'">` : '<p class="text-muted">No image provided</p>'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('previewContent').innerHTML = previewHtml;
+            new bootstrap.Modal(document.getElementById('previewModal')).show();
+        }
+
+        // Form validation - TEMPORARILY DISABLED FOR DEBUGGING
+        /*
+        document.getElementById('createModelForm').addEventListener('submit', function(e) {
+            console.log('Form submit event triggered');
+            
+            const requiredFields = ['Name', 'ManufacturerId', 'Category'];
+            let isValid = true;
+            let errorMessages = [];
+            
+            requiredFields.forEach(field => {
+                const input = document.querySelector(`[name="${field}"]`);
+                console.log(`Field ${field}: value = "${input?.value}"`);
+                if (!input || !input.value.trim()) {
+                    isValid = false;
+                    input?.classList.add('is-invalid');
+                    const label = document.querySelector(`label[for="${field}"]`)?.textContent || field;
+                    errorMessages.push(`${label} is required.`);
+                } else {
+                    input.classList.remove('is-invalid');
+                }
+            });
+            
+            console.log('Form valid:', isValid);
+            
+            if (!isValid) {
+                console.log('Preventing form submission due to validation errors');
+                e.preventDefault();
+                const alertDiv = document.querySelector('[asp-validation-summary="ModelOnly"]');
+                if (alertDiv) {
+                    alertDiv.classList.remove('d-none');
+                    alertDiv.innerHTML = '<ul><li>' + errorMessages.join('</li><li>') + '</li></ul>';
+                } else {
+                    alert('Please fill in all required fields:\n' + errorMessages.join('\n'));
+                }
+                return false;
+            }
+            
+            console.log('Form validation passed, submitting...');
+            return true;
+        });
+        */
+        
+        // Simple logging to see if form submits
+        document.getElementById('createModelForm').addEventListener('submit', function(e) {
+            const nameValue = document.querySelector('[name="Name"]')?.value;
+            const manufacturerIdValue = document.querySelector('[name="ManufacturerId"]')?.value;
+            const categoryValue = document.querySelector('[name="Category"]')?.value;
+            const imageUrlValue = document.querySelector('[name="ImageUrl"]')?.value;
+            
+            console.log('Form is being submitted!');
+            console.log('Name:', nameValue);
+            console.log('ManufacturerId:', manufacturerIdValue);
+            console.log('Category:', categoryValue);
+            console.log('ImageUrl:', imageUrlValue);
+        });
+        
+        // Debug dropdown selection
+        document.querySelector('[name="ManufacturerId"]').addEventListener('change', function(e) {
+            const selectedValue = e.target.value;
+            const selectedText = e.target.options[e.target.selectedIndex].text;
+            console.log('Manufacturer changed:', { value: selectedValue, text: selectedText });
+            document.getElementById('manufacturerValue').textContent = selectedValue || 'None';
+        });
+    </script>
+}

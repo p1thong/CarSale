@@ -1,0 +1,199 @@
+@model ASM1.Repository.Models.VehicleVariant
+@{
+    ViewData["Title"] = "Vehicle Variant Details";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3">Vehicle Variant Details</h1>
+                    <p class="text-muted">@Model.VehicleModel?.Name - @Model.Version</p>
+                </div>
+                <div class="btn-group">
+                    <a href="@Url.Action("VehicleVariants", new { modelId = Model.VehicleModelId })" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Variants
+                    </a>
+                    <a href="@Url.Action("EditVehicleVariant", new { id = Model.VariantId })" class="btn btn-primary">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle"></i> Variant Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-5">Variant ID:</dt>
+                                <dd class="col-sm-7">#@Model.VariantId</dd>
+                                
+                                <dt class="col-sm-5">Vehicle Model:</dt>
+                                <dd class="col-sm-7">
+                                    <a href="@Url.Action("VehicleModelDetail", new { id = Model.VehicleModelId })" class="text-decoration-none">
+                                        @Model.VehicleModel?.Name
+                                    </a>
+                                </dd>
+                                
+                                <dt class="col-sm-5">Manufacturer:</dt>
+                                <dd class="col-sm-7">@Model.VehicleModel?.Manufacturer?.Name</dd>
+                                
+                                <dt class="col-sm-5">Version:</dt>
+                                <dd class="col-sm-7">
+                                    <span class="badge bg-primary">@Model.Version</span>
+                                </dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-5">Production Year:</dt>
+                                <dd class="col-sm-7">@(Model.ProductYear?.ToString() ?? "Not specified")</dd>
+                                
+                                <dt class="col-sm-5">Color:</dt>
+                                <dd class="col-sm-7">
+                                    @if (!string.IsNullOrEmpty(Model.Color))
+                                    {
+                                        <span class="d-flex align-items-center">
+                                            <span class="color-swatch me-2" style="width: 20px; height: 20px; background-color: @Model.Color; border: 1px solid #dee2e6; border-radius: 3px;"></span>
+                                            @Model.Color
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Not specified</span>
+                                    }
+                                </dd>
+                                
+                                <dt class="col-sm-5">Price:</dt>
+                                <dd class="col-sm-7">
+                                    @if (Model.Price.HasValue)
+                                    {
+                                        <span class="fw-bold text-success">@Model.Price.Value.ToString("N0") VNĐ</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Not specified</span>
+                                    }
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Related Information -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-link"></i> Related Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <h6 class="text-muted">Orders</h6>
+                                <h4 class="text-primary">@Model.Orders?.Count() ?? 0</h4>
+                                <small class="text-muted">Total orders</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <h6 class="text-muted">Quotations</h6>
+                                <h4 class="text-info">@Model.Quotations?.Count() ?? 0</h4>
+                                <small class="text-muted">Active quotations</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <h6 class="text-muted">Test Drives</h6>
+                                <h4 class="text-warning">@Model.TestDrives?.Count() ?? 0</h4>
+                                <small class="text-muted">Scheduled test drives</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="@Url.Action("EditVehicleVariant", new { id = Model.VariantId })" class="btn btn-outline-primary">
+                            <i class="fas fa-edit"></i> Edit Variant
+                        </a>
+                        <a href="@Url.Action("VehicleModelDetail", new { id = Model.VehicleModelId })" class="btn btn-outline-info">
+                            <i class="fas fa-car"></i> View Model Details
+                        </a>
+                        <hr>
+                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                            <i class="fas fa-trash"></i> Delete Variant
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Model Information -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Model Information</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-5">Category:</dt>
+                        <dd class="col-sm-7">@Model.VehicleModel?.Category</dd>
+                        
+                        <dt class="col-sm-5">Manufacturer:</dt>
+                        <dd class="col-sm-7">@Model.VehicleModel?.Manufacturer?.Name</dd>
+                        
+                        <dt class="col-sm-5">Country:</dt>
+                        <dd class="col-sm-7">@Model.VehicleModel?.Manufacturer?.Country</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the variant <strong>@Model.Version</strong>?</p>
+                <p class="text-muted">This action cannot be undone and will affect:</p>
+                <ul class="text-muted">
+                    <li>@Model.Orders?.Count() ?? 0 existing orders</li>
+                    <li>@Model.Quotations?.Count() ?? 0 quotations</li>
+                    <li>@Model.TestDrives?.Count() ?? 0 test drive records</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form asp-action="DeleteVehicleVariant" method="post" class="d-inline">
+                    <input name="id" value="@Model.VariantId" type="hidden" />
+                    <button type="submit" class="btn btn-danger">Delete Permanently</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

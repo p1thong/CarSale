@@ -1,0 +1,105 @@
+@{
+    ViewData["Title"] = "EVM Dashboard - Manufacturer Management";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-4">EVM Dashboard</h1>
+            <p class="text-muted">Manufacturer Staff Management Portal</p>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Total Vehicles</h5>
+                    <h2 class="card-text">@(ViewBag.TotalVehicles ?? 0)</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Active Dealers</h5>
+                    <h2 class="card-text">@(ViewBag.ActiveDealers ?? 0)</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Contracts</h5>
+                    <h2 class="card-text">@(ViewBag.TotalContracts ?? 0)</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Manufacturers</h5>
+                    <h2 class="card-text">@(ViewBag.TotalManufacturers ?? 0)</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Vehicle Management</h6>
+                            <div class="list-group">
+                                <a href="@Url.Action("Index", "EVM", new { section = "vehicles" })" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-car"></i> Manage Vehicle Models
+                                </a>
+                                <a href="@Url.Action("Index", "EVM", new { section = "variants" })" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-cogs"></i> Manage Vehicle Variants
+                                </a>
+                                <a href="@Url.Action("Index", "EVM", new { section = "manufacturers" })" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-industry"></i> Manage Manufacturers
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Distribution Management</h6>
+                            <div class="list-group">
+                                <a href="@Url.Action("Index", "EVM", new { section = "dealers" })" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-store"></i> Manage Dealers
+                                </a>
+                                <a href="@Url.Action("Index", "EVM", new { section = "contracts" })" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-file-contract"></i> Dealer Contracts
+                                </a>
+                                <a href="@Url.Action("Index", "EVM", new { section = "promotions" })" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-tags"></i> Manage Promotions
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Recent Activity</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">No recent activity to display.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

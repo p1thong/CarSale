@@ -1,0 +1,221 @@
+@using ASM1.Repository.Models
+@model VehicleVariant
+
+@{
+    ViewData["Title"] = "Create Vehicle Variant";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="h3 mb-1">
+                        <i class="fas fa-plus-circle text-primary"></i> Create New Vehicle Variant
+                    </h2>
+                    <p class="text-muted">Add a new variant for existing vehicle model</p>
+                </div>
+                <a asp-action="VehicleModels" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Models
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 col-md-10 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-layer-group"></i> Vehicle Variant Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="CreateVehicleVariant" method="post" id="createVariantForm">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger d-none"></div>
+                        
+                        <!-- Model Selection -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary border-bottom pb-2 mb-3">
+                                    <i class="fas fa-car"></i> Base Model
+                                </h6>
+                            </div>
+                            
+                            <div class="col-md-12 mb-3">
+                                <label asp-for="VehicleModelId" class="form-label">
+                                    Vehicle Model <span class="text-danger">*</span>
+                                </label>
+                                <select asp-for="VehicleModelId" class="form-select" asp-items="@ViewBag.VehicleModels" onchange="loadModelInfo(this.value)">
+                                    <option value="">-- Select Vehicle Model --</option>
+                                </select>
+                                <span asp-validation-for="VehicleModelId" class="text-danger"></span>
+                            </div>
+                            
+                            <!-- Model Info Display -->
+                            <div class="col-12" id="modelInfoDisplay" style="display: none;">
+                                <div class="alert alert-info">
+                                    <div id="modelInfoContent"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Variant Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary border-bottom pb-2 mb-3">
+                                    <i class="fas fa-info-circle"></i> Variant Details
+                                </h6>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Version" class="form-label">
+                                    Version Name <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="Version" class="form-control" placeholder="e.g., LE, SE, XLE, Limited" />
+                                <small class="form-text text-muted">Trim level or variant designation</small>
+                                <span asp-validation-for="Version" class="text-danger"></span>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Price" class="form-label">
+                                    Variant Price
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input asp-for="Price" type="number" class="form-control" step="0.01" 
+                                           placeholder="0.00" />
+                                </div>
+                                <span asp-validation-for="Price" class="text-danger"></span>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Color" class="form-label">Color</label>
+                                <input asp-for="Color" class="form-control" placeholder="e.g., Pearl White, Midnight Black" />
+                                <span asp-validation-for="Color" class="text-danger"></span>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ProductYear" class="form-label">Production Year</label>
+                                <input asp-for="ProductYear" type="number" class="form-control" min="2000" max="2030" 
+                                       placeholder="e.g., 2024" />
+                                <span asp-validation-for="ProductYear" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <a asp-action="VehicleModels" class="btn btn-outline-secondary">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </a>
+                                    <div>
+                                        <button type="button" class="btn btn-outline-primary me-2" onclick="previewVariant()">
+                                            <i class="fas fa-eye"></i> Preview
+                                        </button>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-save"></i> Create Variant
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-eye"></i> Vehicle Variant Preview
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="previewContent">
+                <!-- Preview content will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="$('#createVariantForm').submit()">
+                    <i class="fas fa-save"></i> Create Variant
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        function loadModelInfo(modelId) {
+            if (modelId) {
+                // In a real application, this would be an AJAX call to get model details
+                document.getElementById('modelInfoDisplay').style.display = 'block';
+                document.getElementById('modelInfoContent').innerHTML = `
+                    <strong>Selected Model:</strong> Loading model information...
+                `;
+            } else {
+                document.getElementById('modelInfoDisplay').style.display = 'none';
+            }
+        }
+
+        function previewVariant() {
+            const form = document.getElementById('createVariantForm');
+            const formData = new FormData(form);
+            
+            let previewHtml = `
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0">Variant Information</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Base Model:</strong> ${$('#VehicleModelId option:selected').text() || 'Not selected'}<br>
+                                <strong>Version:</strong> ${formData.get('Version') || 'Not specified'}<br>
+                                <strong>Price:</strong> $${parseFloat(formData.get('Price') || 0).toLocaleString()}<br>
+                                <strong>Color:</strong> ${formData.get('Color') || 'Not specified'}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Production Year:</strong> ${formData.get('ProductYear') || 'Not specified'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('previewContent').innerHTML = previewHtml;
+            new bootstrap.Modal(document.getElementById('previewModal')).show();
+        }
+
+        // Form validation
+        document.getElementById('createVariantForm').addEventListener('submit', function(e) {
+            const requiredFields = ['VehicleModelId', 'Version'];
+            let isValid = true;
+            
+            requiredFields.forEach(field => {
+                const input = document.querySelector(`[name="${field}"]`);
+                if (!input.value.trim()) {
+                    isValid = false;
+                    input.classList.add('is-invalid');
+                } else {
+                    input.classList.remove('is-invalid');
+                }
+            });
+            
+            if (!isValid) {
+                e.preventDefault();
+                document.querySelector('.alert-danger').classList.remove('d-none');
+                document.querySelector('.alert-danger').textContent = 'Please fill in all required fields.';
+            }
+        });
+    </script>
+}

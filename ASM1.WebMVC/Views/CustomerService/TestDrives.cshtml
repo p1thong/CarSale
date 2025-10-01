@@ -1,0 +1,180 @@
+@model IEnumerable<ASM1.Repository.Models.TestDrive>
+
+@{
+    ViewData["Title"] = "Quản lý lái thử";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="h3">Quản lý lịch lái thử</h2>
+                    <p class="text-muted">Quản lý và theo dõi lịch lái thử của khách hàng</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="@Url.Action("Index", "Home")" class="btn btn-outline-secondary">
+                        <i class="fas fa-home"></i> Trang chủ
+                    </a>
+                    <a href="@Url.Action("ScheduleTestDrive")" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Đặt lịch mới
+                    </a>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                        <input type="date" id="dateFilter" class="form-control" 
+                               value="@DateTime.Today.ToString("yyyy-MM-dd")" onchange="filterByDate()" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Danh sách lịch lái thử</h5>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-outline-secondary active" onclick="filterStatus('all')">Tất cả</button>
+                        <button type="button" class="btn btn-sm btn-outline-warning" onclick="filterStatus('Scheduled')">Đã đặt lịch</button>
+                        <button type="button" class="btn btn-sm btn-outline-info" onclick="filterStatus('Confirmed')">Đã xác nhận</button>
+                        <button type="button" class="btn btn-sm btn-outline-success" onclick="filterStatus('Completed')">Hoàn thành</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (!Model.Any())
+                    {
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i> Không có lịch lái thử nào. Hãy tạo lịch lái thử mới!
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Mã</th>
+                                        <th>Khách hàng</th>
+                                        <th>Phương tiện</th>
+                                        <th>Ngày lái thử</th>
+                                        <th>Trạng thái</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var testDrive in Model)
+                                    {
+                                        <tr class="test-drive-row" data-status="@testDrive.Status">
+                                            <td>#@testDrive.TestDriveId</td>
+                                            <td>
+                                                <a href="@Url.Action("CustomerProfile", "CustomerService", new { id = testDrive.CustomerId })" class="text-decoration-none">
+                                                    @testDrive.Customer.FullName
+                                                </a>
+                                            </td>
+                                            <td>@testDrive.Variant.VehicleModel.Name - @testDrive.Variant.Version</td>
+                                            <td>
+                                                <span class="text-nowrap">
+                                                    <i class="far fa-calendar-alt me-1"></i>
+                                                    @testDrive.ScheduledDate?.ToString("dd/MM/yyyy")
+                                                </span>
+                                                <br />
+                                                <small class="text-muted">
+                                                    <i class="far fa-clock me-1"></i>
+                                                    Đã đặt lịch
+                                                </small>
+                                            </td>
+                                            <td>
+                                                <span class="badge @GetStatusBadgeClass(testDrive.Status ?? "Unknown")">
+                                                    @GetStatusText(testDrive.Status ?? "Unknown")
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    @if (testDrive.Status == "Scheduled")
+                                                    {
+                                                        <button type="button" class="btn btn-sm btn-success" 
+                                                                onclick="confirmTestDrive(@testDrive.TestDriveId)" data-bs-toggle="tooltip" title="Xác nhận lịch lái thử">
+                                                            <i class="fas fa-check me-1"></i> Xác nhận
+                                                        </button>
+                                                    }
+                                                    
+                                                    @if (testDrive.Status == "Confirmed")
+                                                    {
+                                                        <button type="button" class="btn btn-sm btn-primary" 
+                                                                onclick="completeTestDrive(@testDrive.TestDriveId)" data-bs-toggle="tooltip" title="Hoàn thành lịch lái thử">
+                                                            <i class="fas fa-flag-checkered me-1"></i> Hoàn thành
+                                                        </button>
+                                                    }
+                                                    
+                                                    <a href="@Url.Action("ScheduleTestDrive", new { customerId = testDrive.CustomerId })" 
+                                                       class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Đặt lại lịch lái thử">
+                                                        <i class="fas fa-calendar-alt me-1"></i> Đặt lại
+                                                    </a>
+                                                    
+                                                    <a href="@Url.Action("TestDriveDetails", new { id = testDrive.TestDriveId })" 
+                                                       class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                                        <i class="fas fa-info-circle"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Scheduled" => "bg-warning",
+            "Confirmed" => "bg-info",
+            "Completed" => "bg-success",
+            "Cancelled" => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+    
+    string GetStatusText(string status)
+    {
+        return status switch
+        {
+            "Scheduled" => "Đã đặt lịch",
+            "Confirmed" => "Đã xác nhận",
+            "Completed" => "Hoàn thành",
+            "Cancelled" => "Đã hủy",
+            _ => status
+        };
+    }
+}
+
+@section Scripts {
+    <script>
+        function confirmTestDrive(testDriveId) {
+            if (confirm(`Confirm test drive #${testDriveId}?`)) {
+                $.post('@Url.Action("ConfirmTestDrive")', { testDriveId: testDriveId })
+                    .done(function() {
+                        location.reload();
+                    });
+            }
+        }
+
+        function completeTestDrive(testDriveId) {
+            if (confirm(`Complete test drive #${testDriveId}?`)) {
+                $.post('@Url.Action("CompleteTestDrive")', { testDriveId: testDriveId })
+                    .done(function() {
+                        location.reload();
+                    });
+            }
+        }
+
+        function filterByDate() {
+            var selectedDate = document.getElementById('dateFilter').value;
+            window.location.href = '@Url.Action("TestDrives")?date=' + selectedDate;
+        }
+    </script>
+}

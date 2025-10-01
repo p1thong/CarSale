@@ -1,0 +1,357 @@
+@model ASM1.Repository.Models.TestDrive
+
+@{
+    ViewData["Title"] = "Schedule Test Drive";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-car"></i> Schedule Test Drive
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Test Drive Information:</strong>
+                        Schedule your test drive experience with us. Choose your preferred vehicle and date.
+                    </div>
+
+                    <form asp-action="ScheduleTestDrive" method="post" id="testDriveForm">
+                        @if (ViewBag.IsGuestUser == true)
+                        {
+                            <!-- Guest User Information -->
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i>
+                                <strong>Guest Registration:</strong> Please provide your contact information for the test drive appointment.
+                            </div>
+                            
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h5><i class="fas fa-user"></i> Contact Information</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="guestName" class="form-label">Full Name *</label>
+                                                <input type="text" id="guestName" name="guestName" class="form-control" required />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="guestEmail" class="form-label">Email *</label>
+                                                <input type="email" id="guestEmail" name="guestEmail" class="form-control" required />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="guestPhone" class="form-label">Phone Number *</label>
+                                                <input type="tel" id="guestPhone" name="guestPhone" class="form-control" required />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="guestLicense" class="form-label">Driver's License Number *</label>
+                                                <input type="text" id="guestLicense" name="guestLicense" class="form-control" required />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <input type="hidden" name="customerId" value="@ViewBag.CustomerId" />
+                        }
+                        
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-calendar-alt"></i> Schedule Details</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="variantId" class="form-label">
+                                                        <i class="fas fa-car"></i> Select Vehicle *
+                                                    </label>
+                                                    <select name="variantId" id="variantId" class="form-select" required>
+                                                        <option value="">-- Choose a vehicle --</option>
+                                                        <!-- Options will be loaded via JavaScript -->
+                                                    </select>
+                                                    <div class="form-text">Select the vehicle model you want to test drive</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="scheduledDate" class="form-label">
+                                                        <i class="fas fa-calendar"></i> Preferred Date *
+                                                    </label>
+                                                    <input type="date" name="scheduledDate" id="scheduledDate" class="form-control" required />
+                                                    <div class="form-text">Choose your preferred test drive date</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="preferredTime" class="form-label">
+                                                        <i class="fas fa-clock"></i> Preferred Time
+                                                    </label>
+                                                    <select id="preferredTime" class="form-select">
+                                                        <option value="">-- Select time --</option>
+                                                        <option value="09:00">09:00 AM</option>
+                                                        <option value="10:00">10:00 AM</option>
+                                                        <option value="11:00">11:00 AM</option>
+                                                        <option value="14:00">02:00 PM</option>
+                                                        <option value="15:00">03:00 PM</option>
+                                                        <option value="16:00">04:00 PM</option>
+                                                    </select>
+                                                    <div class="form-text">Available time slots</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="duration" class="form-label">
+                                                        <i class="fas fa-hourglass-half"></i> Duration
+                                                    </label>
+                                                    <select id="duration" class="form-select">
+                                                        <option value="30">30 minutes</option>
+                                                        <option value="60" selected>1 hour</option>
+                                                        <option value="120">2 hours</option>
+                                                    </select>
+                                                    <div class="form-text">Expected test drive duration</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="notes" class="form-label">
+                                                <i class="fas fa-comment"></i> Special Requests / Notes
+                                            </label>
+                                            <textarea id="notes" class="form-control" rows="3" placeholder="Any special requests or additional information..."></textarea>
+                                            <div class="form-text">Optional: Let us know if you have any specific requirements</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-car-side"></i> Vehicle Preview</h5>
+                                    </div>
+                                    <div class="card-body" id="vehiclePreview">
+                                        <div class="text-center text-muted">
+                                            <i class="fas fa-car fa-3x mb-3"></i>
+                                            <p>Select a vehicle to see details</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card mt-3">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-info-circle"></i> Important Notes</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="list-unstyled">
+                                            <li><i class="fas fa-check text-success"></i> Valid driver's license required</li>
+                                            <li><i class="fas fa-check text-success"></i> Must be 21+ years old</li>
+                                            <li><i class="fas fa-check text-success"></i> Insurance coverage provided</li>
+                                            <li><i class="fas fa-check text-success"></i> Professional guidance included</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-4">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col-md-8">
+                                        <h6><i class="fas fa-shield-alt"></i> Safety & Terms</h6>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+                                            <label class="form-check-label" for="agreeTerms">
+                                                I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Terms and Conditions</a> and acknowledge that I have a valid driver's license
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        <a asp-action="TestDrives" class="btn btn-secondary me-2">
+                                            <i class="fas fa-times"></i> Cancel
+                                        </a>
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fas fa-calendar-check"></i> Schedule Test Drive
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Terms Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Test Drive Terms and Conditions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>1. Driver Requirements</h6>
+                <ul>
+                    <li>Must be at least 21 years of age</li>
+                    <li>Must possess a valid driver's license</li>
+                    <li>Must provide identification</li>
+                </ul>
+                
+                <h6>2. Vehicle Usage</h6>
+                <ul>
+                    <li>Vehicle must be returned in the same condition</li>
+                    <li>No smoking or eating in the vehicle</li>
+                    <li>Maximum speed limits must be observed</li>
+                </ul>
+                
+                <h6>3. Insurance & Liability</h6>
+                <ul>
+                    <li>Insurance coverage is provided during test drive</li>
+                    <li>Driver is responsible for any traffic violations</li>
+                    <li>Any damages may result in charges</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">I Understand</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Load vehicle variants
+            loadVehicleVariants();
+            
+            // Set minimum date to tomorrow
+            let tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            $('#scheduledDate').attr('min', tomorrow.toISOString().split('T')[0]);
+            
+            // Preselect variant if specified
+            @if (ViewBag.PreselectedVariantId != null)
+            {
+                <text>
+                setTimeout(function() {
+                    $('#variantId').val('@ViewBag.PreselectedVariantId').trigger('change');
+                }, 500);
+                </text>
+            }
+            
+            // Vehicle selection change handler
+            $('#variantId').on('change', function() {
+                var variantId = $(this).val();
+                if (variantId) {
+                    loadVehiclePreview(variantId);
+                } else {
+                    resetVehiclePreview();
+                }
+            });
+            
+            // Form validation
+            $('#testDriveForm').on('submit', function(e) {
+                if (!$('#agreeTerms').is(':checked')) {
+                    e.preventDefault();
+                    alert('Please agree to the terms and conditions');
+                    return false;
+                }
+                
+                var selectedDate = new Date($('#scheduledDate').val());
+                var today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                if (selectedDate <= today) {
+                    e.preventDefault();
+                    alert('Please select a future date for your test drive');
+                    return false;
+                }
+            });
+        });
+        
+        function loadVehicleVariants() {
+            $.get('/CustomerService/GetVehicleVariants')
+                .done(function(data) {
+                    var select = $('#variantId');
+                    if (data.error) {
+                        console.error('Error loading variants:', data.error);
+                        select.append('<option value="">Error loading vehicles</option>');
+                        return;
+                    }
+                    
+                    data.forEach(function(variant) {
+                        select.append(`<option value="${variant.id}" 
+                            data-price="${variant.price}" 
+                            data-color="${variant.color}"
+                            data-year="${variant.year}"
+                            data-category="${variant.category}">
+                            ${variant.name} (${variant.year}) - $${variant.price ? variant.price.toLocaleString() : 'Contact for price'}
+                        </option>`);
+                    });
+                })
+                .fail(function() {
+                    console.error('Failed to load vehicle variants');
+                    $('#variantId').append('<option value="">Failed to load vehicles</option>');
+                });
+        }
+        
+        function loadVehiclePreview(variantId) {
+            var option = $(`#variantId option[value="${variantId}"]`);
+            var name = option.text().split(' - $')[0]; // Remove price from display
+            var price = option.data('price');
+            var color = option.data('color');
+            var year = option.data('year');
+            var category = option.data('category');
+            
+            var preview = `
+                <div class="text-center">
+                    <i class="fas fa-car fa-3x text-primary mb-3"></i>
+                    <h6>${name}</h6>
+                    <p class="text-muted">
+                        <strong>Year:</strong> ${year}<br>
+                        <strong>Color:</strong> ${color}<br>
+                        <strong>Category:</strong> ${category}
+                    </p>
+                    <p class="h5 text-success">
+                        ${price ? '$' + price.toLocaleString() : 'Contact for price'}
+                    </p>
+                    <small class="text-muted">Starting price</small>
+                </div>
+            `;
+            
+            $('#vehiclePreview').html(preview);
+        }
+        
+        function resetVehiclePreview() {
+            $('#vehiclePreview').html(`
+                <div class="text-center text-muted">
+                    <i class="fas fa-car fa-3x mb-3"></i>
+                    <p>Select a vehicle to see details</p>
+                </div>
+            `);
+        }
+    </script>
+}

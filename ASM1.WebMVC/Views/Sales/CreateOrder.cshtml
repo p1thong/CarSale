@@ -1,0 +1,313 @@
+@model ASM1.Repository.Models.Order
+
+@{
+    ViewData["Title"] = "Create Order";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-shopping-cart"></i> Create New Order
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Order Information:</strong>
+                        Create a new vehicle order for your customer. Please fill in all required information.
+                    </div>
+
+                    <form asp-action="CreateOrder" method="post" id="orderForm">
+                        <div class="row">
+                            <!-- Order Details Section -->
+                            <div class="col-md-8">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-file-alt"></i> Order Details</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="customerId" class="form-label">
+                                                        <i class="fas fa-user"></i> Customer *
+                                                    </label>
+                                                    <select name="customerId" id="customerId" class="form-select" required>
+                                                        <option value="">-- Select Customer --</option>
+                                                        @if (ViewBag.Customers != null)
+                                                        {
+                                                            @foreach (var customer in ViewBag.Customers)
+                                                            {
+                                                                var isSelected = ViewBag.PreselectedCustomerId != null && ViewBag.PreselectedCustomerId.Equals(customer.CustomerId);
+                                                                <option value="@customer.CustomerId" 
+                                                                        data-email="@customer.Email" 
+                                                                        data-phone="@customer.Phone"
+                                                                        selected="@isSelected">
+                                                                    @customer.FullName (@customer.Email)
+                                                                </option>
+                                                            }
+                                                        }
+                                                    </select>
+                                                    <div class="form-text">Select the customer for this order</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="variantId" class="form-label">
+                                                        <i class="fas fa-car"></i> Vehicle *
+                                                    </label>
+                                                    <select name="variantId" id="variantId" class="form-select" required>
+                                                        <option value="">-- Select Vehicle --</option>
+                                                        @if (ViewBag.VehicleVariants != null)
+                                                        {
+                                                            @foreach (var variant in ViewBag.VehicleVariants)
+                                                            {
+                                                                var isSelected = ViewBag.PreselectedVariantId != null && ViewBag.PreselectedVariantId.Equals(variant.VariantId);
+                                                                <option value="@variant.VariantId" 
+                                                                        data-price="@variant.Price" 
+                                                                        data-color="@variant.Color"
+                                                                        data-year="@variant.ProductYear"
+                                                                        selected="@isSelected">
+                                                                    @variant.VehicleModel?.Manufacturer?.Name @variant.VehicleModel?.Name @variant.Version (@variant.ProductYear)
+                                                                </option>
+                                                            }
+                                                        }
+                                                    </select>
+                                                    <div class="form-text">Select the vehicle for this order</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="notes" class="form-label">
+                                                <i class="fas fa-comment"></i> Order Notes
+                                            </label>
+                                            <textarea name="notes" id="notes" class="form-control" rows="3" 
+                                                      placeholder="Additional notes or special requirements for this order..."></textarea>
+                                            <div class="form-text">Optional: Any special instructions or notes</div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="deliveryDate" class="form-label">
+                                                        <i class="fas fa-calendar"></i> Expected Delivery Date
+                                                    </label>
+                                                    <input type="date" name="deliveryDate" id="deliveryDate" class="form-control" />
+                                                    <div class="form-text">Estimated delivery date</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="priority" class="form-label">
+                                                        <i class="fas fa-flag"></i> Priority Level
+                                                    </label>
+                                                    <select name="priority" id="priority" class="form-select">
+                                                        <option value="Normal" selected>Normal</option>
+                                                        <option value="High">High</option>
+                                                        <option value="Urgent">Urgent</option>
+                                                    </select>
+                                                    <div class="form-text">Order priority level</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Order Summary Section -->
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-receipt"></i> Order Summary</h5>
+                                    </div>
+                                    <div class="card-body" id="orderSummary">
+                                        <div class="text-center text-muted">
+                                            <i class="fas fa-shopping-cart fa-3x mb-3"></i>
+                                            <p>Select customer and vehicle to see order summary</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card mt-3">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-info-circle"></i> Order Process</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="timeline">
+                                            <div class="timeline-item active">
+                                                <i class="fas fa-check-circle text-success"></i>
+                                                <span>Create Order</span>
+                                            </div>
+                                            <div class="timeline-item">
+                                                <i class="fas fa-clock text-muted"></i>
+                                                <span>Payment Processing</span>
+                                            </div>
+                                            <div class="timeline-item">
+                                                <i class="fas fa-clock text-muted"></i>
+                                                <span>Vehicle Preparation</span>
+                                            </div>
+                                            <div class="timeline-item">
+                                                <i class="fas fa-clock text-muted"></i>
+                                                <span>Delivery</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="card mt-4">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col-md-8">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="confirmOrder" required>
+                                            <label class="form-check-label" for="confirmOrder">
+                                                I confirm that all order details are correct and I want to proceed with creating this order
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        <a asp-action="Orders" class="btn btn-secondary me-2">
+                                            <i class="fas fa-times"></i> Cancel
+                                        </a>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-plus"></i> Create Order
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Update order summary when selections change
+            $('#customerId, #variantId').on('change', function() {
+                updateOrderSummary();
+            });
+
+            // Set minimum delivery date to next week
+            let nextWeek = new Date();
+            nextWeek.setDate(nextWeek.getDate() + 7);
+            $('#deliveryDate').attr('min', nextWeek.toISOString().split('T')[0]);
+            $('#deliveryDate').val(nextWeek.toISOString().split('T')[0]);
+
+            // Form validation
+            $('#orderForm').on('submit', function(e) {
+                if (!$('#confirmOrder').is(':checked')) {
+                    e.preventDefault();
+                    alert('Please confirm the order details before proceeding');
+                    return false;
+                }
+
+                if (!$('#customerId').val() || !$('#variantId').val()) {
+                    e.preventDefault();
+                    alert('Please select both customer and vehicle');
+                    return false;
+                }
+            });
+
+            // Initialize summary if preselected values exist
+            @if (ViewBag.PreselectedCustomerId != null || ViewBag.PreselectedVariantId != null)
+            {
+                <text>updateOrderSummary();</text>
+            }
+        });
+
+        function updateOrderSummary() {
+            var customerId = $('#customerId').val();
+            var variantId = $('#variantId').val();
+
+            if (!customerId || !variantId) {
+                $('#orderSummary').html(`
+                    <div class="text-center text-muted">
+                        <i class="fas fa-shopping-cart fa-3x mb-3"></i>
+                        <p>Select customer and vehicle to see order summary</p>
+                    </div>
+                `);
+                return;
+            }
+
+            // Get customer info
+            var customerOption = $('#customerId option:selected');
+            var customerName = customerOption.text().split(' (')[0];
+            var customerEmail = customerOption.data('email');
+            var customerPhone = customerOption.data('phone');
+
+            // Get vehicle info
+            var vehicleOption = $('#variantId option:selected');
+            var vehicleName = vehicleOption.text();
+            var vehiclePrice = vehicleOption.data('price');
+            var vehicleColor = vehicleOption.data('color');
+            var vehicleYear = vehicleOption.data('year');
+
+            var summary = `
+                <div>
+                    <h6 class="text-primary"><i class="fas fa-user"></i> Customer</h6>
+                    <p class="mb-2">
+                        <strong>${customerName}</strong><br>
+                        <small class="text-muted">${customerEmail}</small><br>
+                        <small class="text-muted">${customerPhone || 'No phone'}</small>
+                    </p>
+                    
+                    <hr>
+                    
+                    <h6 class="text-primary"><i class="fas fa-car"></i> Vehicle</h6>
+                    <p class="mb-2">
+                        <strong>${vehicleName}</strong><br>
+                        <small class="text-muted">Color: ${vehicleColor}</small><br>
+                        <small class="text-muted">Year: ${vehicleYear}</small>
+                    </p>
+                    
+                    <hr>
+                    
+                    <h6 class="text-primary"><i class="fas fa-dollar-sign"></i> Price</h6>
+                    <h4 class="text-success">
+                        ${vehiclePrice ? '$' + vehiclePrice.toLocaleString() : 'Contact for price'}
+                    </h4>
+                    
+                    <hr>
+                    
+                    <div class="text-center">
+                        <small class="text-muted">Order Date: ${new Date().toLocaleDateString()}</small><br>
+                        <small class="text-muted">Status: <span class="badge bg-warning">Pending</span></small>
+                    </div>
+                </div>
+            `;
+
+            $('#orderSummary').html(summary);
+        }
+    </script>
+
+    <style>
+        .timeline {
+            padding-left: 0;
+        }
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        .timeline-item i {
+            margin-right: 10px;
+            width: 20px;
+        }
+        .timeline-item.active span {
+            font-weight: bold;
+            color: #198754;
+        }
+    </style>
+}

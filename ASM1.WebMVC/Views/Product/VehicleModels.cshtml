@@ -1,0 +1,284 @@
+@model IEnumerable<ASM1.Repository.Models.VehicleModel>
+
+@{
+    ViewData["Title"] = "Vehicle Models Management";
+}
+
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="fas fa-car text-primary"></i> Vehicle Models Management</h2>
+                    <p class="text-muted">Manage vehicle models and their specifications</p>
+                </div>
+                <div>
+                    <a asp-action="CreateVehicleModel" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add New Model
+                    </a>
+                    <a asp-action="Manufacturers" class="btn btn-outline-secondary">
+                        <i class="fas fa-industry"></i> Manufacturers
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6>Total Models</h6>
+                            <h4>@Model.Count()</h4>
+                        </div>
+                        <i class="fas fa-car fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6>Total Variants</h6>
+                            <h4>@Model.Sum(m => m.VehicleVariants.Count)</h4>
+                        </div>
+                        <i class="fas fa-cogs fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6>Manufacturers</h6>
+                            <h4>@Model.Select(m => m.ManufacturerId).Distinct().Count()</h4>
+                        </div>
+                        <i class="fas fa-industry fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6>Categories</h6>
+                            <h4>@Model.Select(m => m.Category).Distinct().Count()</h4>
+                        </div>
+                        <i class="fas fa-tags fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Manufacturer</label>
+                            <select class="form-select" id="manufacturerFilter">
+                                <option value="">All Manufacturers</option>
+                                @foreach (var manufacturer in Model.Select(m => m.Manufacturer).Distinct())
+                                {
+                                    <option value="@manufacturer.ManufacturerId">@manufacturer.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Category</label>
+                            <select class="form-select" id="categoryFilter">
+                                <option value="">All Categories</option>
+                                @foreach (var category in Model.Where(m => !string.IsNullOrEmpty(m.Category)).Select(m => m.Category).Distinct())
+                                {
+                                    <option value="@category">@category</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Search</label>
+                            <input type="text" class="form-control" id="searchInput" placeholder="Search by model name...">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">&nbsp;</label>
+                            <div class="d-grid">
+                                <button class="btn btn-primary" onclick="filterModels()">
+                                    <i class="fas fa-search"></i> Filter
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Models Grid -->
+    <div class="row" id="modelsContainer">
+        @foreach (var vehicleModel in Model)
+        {
+            <div class="col-lg-4 col-md-6 mb-4 model-card" 
+                 data-manufacturer="@vehicleModel.ManufacturerId" 
+                 data-category="@vehicleModel.Category" 
+                 data-name="@vehicleModel.Name.ToLower()">
+                <div class="card h-100">
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">@vehicleModel.Name</h5>
+                            <span class="badge bg-primary">@vehicleModel.VehicleVariants.Count variants</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <h6 class="text-muted">
+                                <i class="fas fa-industry"></i> @vehicleModel.Manufacturer.Name
+                            </h6>
+                        </div>
+                        
+                        @if (!string.IsNullOrEmpty(vehicleModel.Category))
+                        {
+                            <div class="mb-3">
+                                <span class="badge bg-secondary">
+                                    <i class="fas fa-tag"></i> @vehicleModel.Category
+                                </span>
+                            </div>
+                        }
+
+                        @if (vehicleModel.VehicleVariants.Any())
+                        {
+                            <div class="mb-3">
+                                <h6>Available Variants:</h6>
+                                <div class="d-flex flex-wrap gap-1">
+                                    @foreach (var variant in vehicleModel.VehicleVariants.Take(3))
+                                    {
+                                        <small class="badge bg-light text-dark">@variant.Version</small>
+                                    }
+                                    @if (vehicleModel.VehicleVariants.Count > 3)
+                                    {
+                                        <small class="badge bg-info">+@(vehicleModel.VehicleVariants.Count - 3) more</small>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        @if (vehicleModel.VehicleVariants.Any(v => v.Price.HasValue))
+                        {
+                            <div class="mb-3">
+                                <h6>Price Range:</h6>
+                                <div class="text-success">
+                                    @{
+                                        var prices = vehicleModel.VehicleVariants.Where(v => v.Price.HasValue).Select(v => v.Price!.Value);
+                                        var minPrice = prices.Min();
+                                        var maxPrice = prices.Max();
+                                    }
+                                    $@minPrice.ToString("N0") - $@maxPrice.ToString("N0")
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <div class="card-footer">
+                        <div class="btn-group w-100" role="group">
+                            <a asp-action="VehicleModelDetail" asp-route-id="@vehicleModel.VehicleModelId" 
+                               class="btn btn-info btn-sm">
+                                <i class="fas fa-eye"></i> Chi tiết
+                            </a>
+                            <a asp-action="VehicleVariants" asp-route-modelId="@vehicleModel.VehicleModelId" 
+                               class="btn btn-primary btn-sm">
+                                <i class="fas fa-cogs"></i> Variants
+                            </a>
+                            <a asp-action="CreateVehicleVariant" asp-route-modelId="@vehicleModel.VehicleModelId" 
+                               class="btn btn-success btn-sm">
+                                <i class="fas fa-plus"></i> Add Variant
+                            </a>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" 
+                                    onclick="editModel(@vehicleModel.VehicleModelId)">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-car fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">No Vehicle Models Found</h4>
+                        <p class="text-muted">Start by adding your first vehicle model</p>
+                        <a asp-action="CreateVehicleModel" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Add Vehicle Model
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        function filterModels() {
+            const manufacturerFilter = $('#manufacturerFilter').val();
+            const categoryFilter = $('#categoryFilter').val();
+            const searchText = $('#searchInput').val().toLowerCase();
+
+            $('.model-card').each(function() {
+                const card = $(this);
+                const manufacturer = card.data('manufacturer').toString();
+                const category = card.data('category') || '';
+                const name = card.data('name');
+
+                let show = true;
+
+                if (manufacturerFilter && manufacturer !== manufacturerFilter) {
+                    show = false;
+                }
+
+                if (categoryFilter && category !== categoryFilter) {
+                    show = false;
+                }
+
+                if (searchText && !name.includes(searchText)) {
+                    show = false;
+                }
+
+                if (show) {
+                    card.show();
+                } else {
+                    card.hide();
+                }
+            });
+        }
+
+        function editModel(modelId) {
+            // Implementation for editing model
+            alert(`Edit model functionality for ID: ${modelId}`);
+        }
+
+        // Real-time search
+        $('#searchInput').on('input', function() {
+            filterModels();
+        });
+
+        $('#manufacturerFilter, #categoryFilter').on('change', function() {
+            filterModels();
+        });
+    </script>
+}

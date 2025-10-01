@@ -1,0 +1,216 @@
+@model ASM1.Repository.Models.VehicleModel
+
+@{
+    ViewData["Title"] = "Chi tiết xe";
+    var variants = ViewBag.Variants as IEnumerable<ASM1.Repository.Models.VehicleVariant>;
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Chi tiết xe: @Model.Name</h2>
+                <div>
+                    <a asp-action="VehicleModels" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-arrow-left"></i> Quay lại
+                    </a>
+                    <a asp-action="EditVehicleModel" asp-route-id="@Model.VehicleModelId" class="btn btn-warning">
+                        <i class="fas fa-edit"></i> Chỉnh sửa
+                    </a>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Thông tin cơ bản -->
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-info-circle"></i> Thông tin cơ bản</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-sm-4"><strong>Mã xe:</strong></div>
+                                <div class="col-sm-8">#@Model.VehicleModelId</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-sm-4"><strong>Tên xe:</strong></div>
+                                <div class="col-sm-8">@Model.Name</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-sm-4"><strong>Hãng sản xuất:</strong></div>
+                                <div class="col-sm-8">@(Model.Manufacturer?.Name ?? "N/A")</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-sm-4"><strong>Quốc gia:</strong></div>
+                                <div class="col-sm-8">@(Model.Manufacturer?.Country ?? "N/A")</div>
+                            </div>
+                            @if (!string.IsNullOrEmpty(Model.Category))
+                            {
+                                <div class="row mb-3">
+                                    <div class="col-sm-4"><strong>Danh mục:</strong></div>
+                                    <div class="col-sm-8">
+                                        <span class="badge bg-primary">@Model.Category</span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hình ảnh -->
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-image"></i> Hình ảnh</h5>
+                        </div>
+                        <div class="card-body text-center">
+                            @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                            {
+                                <img src="@Model.ImageUrl" alt="@Model.Name" 
+                                     class="img-fluid rounded shadow-sm" 
+                                     style="max-height: 300px; object-fit: cover;" />
+                            }
+                            else
+                            {
+                                <div class="d-flex align-items-center justify-content-center bg-light rounded" 
+                                     style="height: 300px;">
+                                    <div class="text-center text-muted">
+                                        <i class="fas fa-car fa-4x mb-3"></i>
+                                        <p>Chưa có hình ảnh</p>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Các phiên bản -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5><i class="fas fa-cogs"></i> Các phiên bản có sẵn</h5>
+                            <a asp-action="CreateVehicleVariant" asp-route-modelId="@Model.VehicleModelId" 
+                               class="btn btn-sm btn-success">
+                                <i class="fas fa-plus"></i> Thêm phiên bản
+                            </a>
+                        </div>
+                        <div class="card-body">
+                            @if (variants != null && variants.Any())
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th>Mã phiên bản</th>
+                                                <th>Tên phiên bản</th>
+                                                <th>Màu sắc</th>
+                                                <th>Năm sản xuất</th>
+                                                <th>Giá bán</th>
+                                                <th>Thao tác</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var variant in variants)
+                                            {
+                                                <tr>
+                                                    <td>#@variant.VariantId</td>
+                                                    <td>@variant.Version</td>
+                                                    <td>
+                                                        @if (!string.IsNullOrEmpty(variant.Color))
+                                                        {
+                                                            <span class="badge bg-secondary">@variant.Color</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="text-muted">Chưa có</span>
+                                                        }
+                                                    </td>
+                                                    <td>@(variant.ProductYear?.ToString() ?? "N/A")</td>
+                                                    <td>
+                                                        @if (variant.Price.HasValue)
+                                                        {
+                                                            <strong class="text-success">@(variant.Price.Value.ToString("#,##0")) VNĐ</strong>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="text-muted">Chưa có giá</span>
+                                                        }
+                                                    </td>
+                                                    <td>
+                                                        <div class="btn-group" role="group">
+                                                            <a asp-action="VehicleVariantDetail" asp-route-id="@variant.VariantId" 
+                                                               class="btn btn-sm btn-info">
+                                                                <i class="fas fa-eye"></i> Xem
+                                                            </a>
+                                                            <a asp-action="EditVehicleVariant" asp-route-id="@variant.VariantId" 
+                                                               class="btn btn-sm btn-warning">
+                                                                <i class="fas fa-edit"></i> Sửa
+                                                            </a>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center py-4">
+                                    <div class="text-muted">
+                                        <i class="fas fa-box-open fa-3x mb-3"></i>
+                                        <h5>Chưa có phiên bản nào</h5>
+                                        <p>Hãy thêm phiên bản đầu tiên cho mẫu xe này.</p>
+                                        <a asp-action="CreateVehicleVariant" asp-route-modelId="@Model.VehicleModelId" 
+                                           class="btn btn-primary">
+                                            <i class="fas fa-plus"></i> Thêm phiên bản
+                                        </a>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Thống kê nhanh -->
+            <div class="row mt-4">
+                <div class="col-md-4">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body text-center">
+                            <h4>@(variants?.Count() ?? 0)</h4>
+                            <p>Phiên bản</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-success text-white">
+                        <div class="card-body text-center">
+                            <h4>@(variants?.Where(v => v.Price.HasValue).Count() ?? 0)</h4>
+                            <p>Có giá bán</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-info text-white">
+                        <div class="card-body text-center">
+                            <h4>
+                                @if (variants?.Any(v => v.Price.HasValue) == true)
+                                {
+                                    @(variants.Where(v => v.Price.HasValue).Min(v => v.Price.Value).ToString("#,##0"))
+                                }
+                                else
+                                {
+                                    <span>--</span>
+                                }
+                            </h4>
+                            <p>Giá thấp nhất (VNĐ)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

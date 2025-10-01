@@ -1,0 +1,228 @@
+@model IEnumerable<ASM1.Repository.Models.VehicleVariant>
+@{
+    ViewData["Title"] = "Vehicle Variants";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3">Vehicle Variants</h1>
+                    <p class="text-muted">Manage vehicle variants and specifications</p>
+                </div>
+                <div class="btn-group">
+                    <a href="@Url.Action("VehicleModels")" class="btn btn-secondary">
+                        <i class="fas fa-car"></i> Vehicle Models
+                    </a>
+                    <a href="@Url.Action("CreateVehicleVariant")" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add Variant
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-4">
+                            <label for="searchTerm" class="form-label">Search</label>
+                            <input type="text" class="form-control" id="searchTerm" name="searchTerm" 
+                                   placeholder="Search by model or variant..." value="@ViewBag.SearchTerm">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="modelId" class="form-label">Filter by Model</label>
+                            <select class="form-select" id="modelId" name="modelId">
+                                <option value="">All Models</option>
+                                @if (ViewBag.VehicleModels != null)
+                                {
+                                    @foreach (var vehicleModel in ViewBag.VehicleModels)
+                                    {
+                                        var isSelected = ViewBag.SelectedModelId?.ToString() == vehicleModel.VehicleModelId.ToString();
+                                        <option value="@vehicleModel.VehicleModelId" selected="@isSelected">
+                                            @vehicleModel.Manufacturer?.Name @vehicleModel.Name
+                                        </option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="priceRange" class="form-label">Price Range</label>
+                            <select class="form-select" id="priceRange" name="priceRange">
+                                <option value="">All Prices</option>
+                                <option value="0-500000000">Under 500M VNĐ</option>
+                                <option value="500000000-1000000000">500M - 1B VNĐ</option>
+                                <option value="1000000000-2000000000">1B - 2B VNĐ</option>
+                                <option value="2000000000-">Above 2B VNĐ</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">&nbsp;</label>
+                            <button type="submit" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-search"></i> Filter
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vehicle Variants Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Vehicle Variants</h5>
+                    <span class="badge bg-primary">@Model.Count() variants</span>
+                </div>
+                <div class="card-body">
+                    @if (Model.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Variant</th>
+                                        <th>Model</th>
+                                        <th>Manufacturer</th>
+                                        <th>Year</th>
+                                        <th>Color</th>
+                                        <th>Price</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var variant in Model)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div>
+                                                        <div class="fw-bold">@variant.Version</div>
+                                                        <small class="text-muted">#@variant.VariantId</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <a href="@Url.Action("VehicleModelDetail", new { id = variant.VehicleModelId })" 
+                                                   class="text-decoration-none">
+                                                    @variant.VehicleModel?.Name
+                                                </a>
+                                            </td>
+                                            <td>@variant.VehicleModel?.Manufacturer?.Name</td>
+                                            <td>@(variant.ProductYear?.ToString() ?? "N/A")</td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(variant.Color))
+                                                {
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="color-swatch me-2" 
+                                                              style="width: 20px; height: 20px; background-color: @variant.Color; border: 1px solid #dee2e6; border-radius: 3px; display: inline-block;"></span>
+                                                        <span>@variant.Color</span>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">Not specified</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (variant.Price.HasValue)
+                                                {
+                                                    <span class="fw-bold text-success">@variant.Price.Value.ToString("N0") VNĐ</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">Price on request</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <a href="@Url.Action("VehicleVariantDetails", new { id = variant.VariantId })" 
+                                                       class="btn btn-outline-info" title="View Details">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a href="@Url.Action("EditVehicleVariant", new { id = variant.VariantId })" 
+                                                       class="btn btn-outline-primary" title="Edit">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <button type="button" class="btn btn-outline-danger" 
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#deleteModal" 
+                                                            data-variant-id="@variant.VariantId" 
+                                                            data-variant-name="@variant.Version"
+                                                            title="Delete">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-layer-group fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No vehicle variants found</h5>
+                            <p class="text-muted">Get started by adding your first vehicle variant.</p>
+                            <a href="@Url.Action("CreateVehicleVariant")" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Add First Variant
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the variant <strong id="variantName"></strong>?</p>
+                <p class="text-muted">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" asp-action="DeleteVehicleVariant" method="post" class="d-inline">
+                    <input id="deleteVariantId" name="id" type="hidden" />
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Handle delete modal
+            const deleteModal = document.getElementById('deleteModal');
+            const deleteForm = document.getElementById('deleteForm');
+            const deleteVariantId = document.getElementById('deleteVariantId');
+            const variantName = document.getElementById('variantName');
+
+            deleteModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const variantId = button.getAttribute('data-variant-id');
+                const variant = button.getAttribute('data-variant-name');
+                
+                deleteVariantId.value = variantId;
+                variantName.textContent = variant;
+            });
+        });
+    </script>
+}

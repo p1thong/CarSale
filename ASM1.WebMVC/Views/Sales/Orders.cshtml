@@ -1,0 +1,113 @@
+@model IEnumerable<ASM1.Repository.Models.Order>
+
+@{
+    ViewData["Title"] = "Orders";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Order Management</h2>
+                <a asp-action="Quotations" class="btn btn-success">
+                    <i class="fa fa-file-text"></i> View Quotations
+                </a>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Vehicle</th>
+                                    <th>Order Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var order in Model)
+                                {
+                                    <tr>
+                                        <td>#@order.OrderId</td>
+                                        <td>@order.Customer.FullName</td>
+                                        <td>@order.Variant.VehicleModel.Name - @order.Variant.Version</td>
+                                        <td>@order.OrderDate?.ToString("dd/MM/yyyy")</td>
+                                        <td>
+                                            <span class="badge @GetStatusBadgeClass(order.Status)">
+                                                @order.Status
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a asp-action="OrderDetail" asp-route-id="@order.OrderId" 
+                                                   class="btn btn-sm btn-info">Chi tiết</a>
+                                                <a asp-action="OrderPayments" asp-route-orderId="@order.OrderId" 
+                                                   class="btn btn-sm btn-warning">Thanh toán</a>
+                                                
+                                                @if (order.Status == "Pending")
+                                                {
+                                                    <button type="button" class="btn btn-sm btn-warning" 
+                                                            onclick="updateOrderStatus(@order.OrderId, 'Processing')">
+                                                        Process
+                                                    </button>
+                                                }
+                                                
+                                                @if (order.Status == "Processing")
+                                                {
+                                                    <button type="button" class="btn btn-sm btn-success" 
+                                                            onclick="completeOrder(@order.OrderId)">
+                                                        Complete
+                                                    </button>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Pending" => "bg-warning",
+            "Processing" => "bg-info", 
+            "Completed" => "bg-success",
+            "Cancelled" => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+}
+
+@section Scripts {
+    <script>
+        function updateOrderStatus(orderId, status) {
+            if (confirm(`Are you sure you want to update order #${orderId} to ${status}?`)) {
+                $.post('@Url.Action("UpdateOrderStatus")', { orderId: orderId, status: status })
+                    .done(function() {
+                        location.reload();
+                    });
+            }
+        }
+
+        function completeOrder(orderId) {
+            if (confirm(`Are you sure you want to complete order #${orderId}?`)) {
+                $.post('@Url.Action("CompleteOrder")', { orderId: orderId })
+                    .done(function() {
+                        location.reload();
+                    });
+            }
+        }
+    </script>
+}

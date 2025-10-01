@@ -1,0 +1,25 @@
+@{
+    var isLoggedIn = ViewBag.IsLoggedIn ?? false;
+    var userName = ViewBag.UserName;
+    var userRole = ViewBag.UserRole;
+}
+
+<div class="row mb-4">
+    <div class="col-12 text-center">
+        <h2>🚗 Hệ thống bán xe</h2>
+        
+        @if (isLoggedIn)
+        {
+            <p class="mb-2">Xin chào <strong>@userName</strong> (@userRole) 
+                <a href="@Url.Action("Logout", "Auth")" class="btn btn-sm btn-outline-danger ms-2">Đăng xuất</a>
+            </p>
+        }
+        else
+        {
+            <p>
+                <a href="@Url.Action("Login", "Auth")" class="btn btn-primary me-2">Đăng nhập</a>
+                <a href="@Url.Action("Register", "Auth")" class="btn btn-outline-primary">Đăng ký</a>
+            </p>
+        }
+    </div>
+</div>

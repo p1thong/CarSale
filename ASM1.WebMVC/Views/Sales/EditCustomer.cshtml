@@ -1,0 +1,130 @@
+@model ASM1.Repository.Models.Customer
+
+@{
+    ViewData["Title"] = "Edit Customer";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-edit"></i> Edit Customer
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="EditCustomer" method="post">
+                        <input type="hidden" asp-for="CustomerId" />
+                        <input type="hidden" asp-for="DealerId" />
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="FullName" class="form-label">
+                                        <i class="fas fa-user"></i> Full Name *
+                                    </label>
+                                    <input asp-for="FullName" class="form-control" placeholder="Enter full name" required />
+                                    <span asp-validation-for="FullName" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Email" class="form-label">
+                                        <i class="fas fa-envelope"></i> Email *
+                                    </label>
+                                    <input asp-for="Email" type="email" class="form-control" placeholder="Enter email address" required />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Phone" class="form-label">
+                                        <i class="fas fa-phone"></i> Phone
+                                    </label>
+                                    <input asp-for="Phone" class="form-control" placeholder="Enter phone number" />
+                                    <span asp-validation-for="Phone" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Birthday" class="form-label">
+                                        <i class="fas fa-calendar"></i> Date of Birth
+                                    </label>
+                                    <input asp-for="Birthday" type="date" class="form-control" />
+                                    <span asp-validation-for="Birthday" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Customer Information:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li><strong>Customer ID:</strong> @Model.CustomerId</li>
+                                <li><strong>Dealer ID:</strong> @Model.DealerId</li>
+                                <li><strong>Created:</strong> @(Model.Birthday?.ToString("dd/MM/yyyy") ?? "Not specified")</li>
+                            </ul>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle"></i> 
+                                    Fields marked with (*) are required
+                                </small>
+                            </div>
+                            <div>
+                                <a asp-action="Customers" class="btn btn-secondary me-2">
+                                    <i class="fas fa-times"></i> Cancel
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Update Customer
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        $(document).ready(function() {
+            // Auto-format phone number
+            $('#Phone').on('input', function() {
+                let value = $(this).val().replace(/\D/g, '');
+                if (value.length >= 10) {
+                    value = value.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+                }
+                $(this).val(value);
+            });
+
+            // Validate email format
+            $('#Email').on('blur', function() {
+                let email = $(this).val();
+                let emailRegex = /^[^\\s@@]+@@[^\\s@@]+\\.[^\\s@@]+$/;
+                
+                if (email && !emailRegex.test(email)) {
+                    $(this).addClass('is-invalid');
+                    $(this).next('.text-danger').text('Please enter a valid email address.');
+                } else {
+                    $(this).removeClass('is-invalid');
+                    $(this).next('.text-danger').text('');
+                }
+            });
+
+            // Set max date for date of birth (18 years ago)
+            let today = new Date();
+            let maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+            $('#Birthday').attr('max', maxDate.toISOString().split('T')[0]);
+        });
+    </script>
+}

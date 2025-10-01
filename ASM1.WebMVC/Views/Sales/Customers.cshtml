@@ -1,0 +1,101 @@
+@model IEnumerable<ASM1.Repository.Models.Customer>
+
+@{
+    ViewData["Title"] = "Quản lý khách hàng";
+}
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-3">
+                    <h5 class="mb-0"><i class="bi bi-people-fill me-2"></i>Quản lý khách hàng</h5>
+                    <a asp-action="CreateCustomer" class="btn btn-light">
+                        <i class="bi bi-plus-circle me-1"></i> Thêm khách hàng mới
+                    </a>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Search and Filter Section -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <input type="text" id="searchCustomer" class="form-control" placeholder="Tìm kiếm khách hàng...">
+                                <button class="btn btn-outline-secondary" type="button">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                            <span class="text-muted">Tổng số: <strong>@Model.Count()</strong> khách hàng</span>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped" id="customersTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Mã KH</th>
+                                    <th>Họ và tên</th>
+                                    <th>Email</th>
+                                    <th>Số điện thoại</th>
+                                    <th>Ngày sinh</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var customer in Model)
+                                {
+                                    <tr>
+                                        <td><span class="badge bg-secondary">@customer.CustomerId</span></td>
+                                        <td><strong>@customer.FullName</strong></td>
+                                        <td><i class="bi bi-envelope-fill text-muted me-1"></i>@customer.Email</td>
+                                        <td><i class="bi bi-telephone-fill text-muted me-1"></i>@customer.Phone</td>
+                                        <td>@(customer.Birthday.HasValue ? customer.Birthday.Value.ToString("dd/MM/yyyy") : "-")</td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a asp-action="CreateQuotation" asp-route-customerId="@customer.CustomerId" 
+                                                   class="btn btn-sm btn-success" data-bs-toggle="tooltip" title="Tạo báo giá">
+                                                   <i class="bi bi-currency-dollar me-1"></i>Báo giá
+                                                </a>
+                                                <a asp-controller="CustomerService" asp-action="CustomerProfile" 
+                                                   asp-route-customerId="@customer.CustomerId" 
+                                                   class="btn btn-sm btn-info" data-bs-toggle="tooltip" title="Xem hồ sơ">
+                                                   <i class="bi bi-person-vcard me-1"></i>Hồ sơ
+                                                </a>
+                                                <a asp-action="EditCustomer" asp-route-id="@customer.CustomerId"
+                                                   class="btn btn-sm btn-warning" data-bs-toggle="tooltip" title="Chỉnh sửa">
+                                                   <i class="bi bi-pencil-square"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Enable tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
+            
+            // Simple search functionality
+            $("#searchCustomer").on("keyup", function() {
+                var value = $(this).val().toLowerCase();
+                $("#customersTable tbody tr").filter(function() {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                });
+            });
+        });
+    </script>
+}

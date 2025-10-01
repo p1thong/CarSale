@@ -1,0 +1,180 @@
+@model List<ASM1.Repository.Models.VehicleModel>
+@{
+    ViewData["Title"] = "EVM - Quản lý phương tiện";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3">Quản lý phương tiện</h1>
+                    <p class="text-muted">Quản lý các mẫu xe và phiên bản</p>
+                </div>
+                <div>
+                    <a href="@Url.Action("CreateVehicleModel")" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Thêm mẫu xe mới
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vehicle Models List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">Danh sách mẫu xe</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Tên mẫu xe</th>
+                                    <th>Hãng sản xuất</th>
+                                    <th>Phân khúc</th>
+                                    <th>Hình ảnh</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model != null && Model.Any())
+                                {
+                                    foreach (var vehicleModel in Model)
+                                    {
+                                        <tr>
+                                            <td>@vehicleModel.Name</td>
+                                            <td>@vehicleModel.Manufacturer?.Name</td>
+                                            <td>@vehicleModel.Category</td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(vehicleModel.ImageUrl))
+                                                {
+                                                    <img src="@vehicleModel.ImageUrl" alt="@vehicleModel.Name" style="width: 50px; height: 50px; object-fit: cover;" />
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">Không có ảnh</span>
+                                                }
+                                            </td>
+                                            <td>N/A</td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <a href="@Url.Action("EditVehicleModel", new { id = vehicleModel.VehicleModelId })" class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <a href="@Url.Action("VehicleModelDetails", new { id = vehicleModel.VehicleModelId })" class="btn btn-sm btn-outline-info">
+                                                        <i class="fas fa-info-circle"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-3">Không tìm thấy mẫu xe nào. <a href="@Url.Action("CreateVehicleModel")">Thêm mẫu xe ngay</a></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vehicle Variants Section -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Phiên bản xe</h5>
+                    <a href="@Url.Action("CreateVehicleVariant")" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-plus"></i> Thêm phiên bản
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Phiên bản</th>
+                                    <th>Mẫu xe</th>
+                                    <th>Màu sắc</th>
+                                    <th>Năm sản xuất</th>
+                                    <th>Giá bán</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (ViewBag.VehicleVariants != null && ViewBag.VehicleVariants.Count > 0)
+                                {
+                                    foreach (var variant in ViewBag.VehicleVariants)
+                                    {
+                                        <tr>
+                                            <td>@variant.Version</td>
+                                            <td>@variant.VehicleModel?.Name</td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(variant.Color))
+                                                {
+                                                    <span class="badge" style="background-color: @variant.Color; color: @(IsColorDark(variant.Color) ? "#fff" : "#000")">
+                                                        @variant.Color
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">Chưa xác định</span>
+                                                }
+                                            </td>
+                                            <td>@(variant.ProductYear?.ToString() ?? "N/A")</td>
+                                            <td>@(variant.Price.HasValue ? string.Format("{0:N0} VNĐ", variant.Price) : "N/A")</td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <a href="@Url.Action("EditVehicleVariant", new { id = variant.VariantId })" class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <a href="@Url.Action("VehicleVariantDetails", new { id = variant.VariantId })" class="btn btn-sm btn-outline-info">
+                                                        <i class="fas fa-info-circle"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-3">Không tìm thấy phiên bản xe nào. <a href="@Url.Action("CreateVehicleVariant")">Thêm phiên bản ngay</a></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    bool IsColorDark(string hexColor)
+    {
+        if (string.IsNullOrEmpty(hexColor) || !hexColor.StartsWith("#"))
+            return false;
+
+        hexColor = hexColor.Replace("#", "");
+        if (hexColor.Length != 6)
+            return false;
+
+        int r = Convert.ToInt32(hexColor.Substring(0, 2), 16);
+        int g = Convert.ToInt32(hexColor.Substring(2, 2), 16);
+        int b = Convert.ToInt32(hexColor.Substring(4, 2), 16);
+
+        // Calculate brightness using the formula: (0.299*R + 0.587*G + 0.114*B)
+        double brightness = (0.299 * r + 0.587 * g + 0.114 * b);
+        return brightness < 128;
+    }
+}
