@@ -1,0 +1,200 @@
+@{
+    ViewData["Title"] = "Create Feedback";
+    var customerId = ViewBag.CustomerId;
+    var customerName = ViewBag.CustomerName;
+    var testDriveId = ViewBag.TestDriveId;
+    var testDriveInfo = ViewBag.TestDriveInfo;
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-comment-dots"></i> Create Feedback
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Share Your Experience:</strong>
+                        Please share your test drive experience with us. Your feedback helps us improve our service.
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(customerName))
+                    {
+                        <div class="alert alert-primary">
+                            <i class="fas fa-user"></i>
+                            <strong>Customer:</strong> @customerName
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(testDriveInfo))
+                    {
+                        <div class="alert alert-success">
+                            <i class="fas fa-car"></i>
+                            <strong>Test Drive:</strong> @testDriveInfo
+                        </div>
+                    }
+
+                    <form asp-action="CreateFeedback" method="post" id="feedbackForm">
+                        <input type="hidden" name="customerId" value="@customerId" />
+                        @if (testDriveId != null)
+                        {
+                            <input type="hidden" name="testDriveId" value="@testDriveId" />
+                        }
+                        
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5><i class="fas fa-star"></i> Rating</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="rating" class="form-label">Overall Rating *</label>
+                                    <div class="rating-container">
+                                        <div class="star-rating">
+                                            <input type="radio" id="star5" name="rating" value="5" required />
+                                            <label for="star5" title="5 stars">★</label>
+                                            <input type="radio" id="star4" name="rating" value="4" />
+                                            <label for="star4" title="4 stars">★</label>
+                                            <input type="radio" id="star3" name="rating" value="3" />
+                                            <label for="star3" title="3 stars">★</label>
+                                            <input type="radio" id="star2" name="rating" value="2" />
+                                            <label for="star2" title="2 stars">★</label>
+                                            <input type="radio" id="star1" name="rating" value="1" />
+                                            <label for="star1" title="1 star">★</label>
+                                        </div>
+                                        <div class="rating-text">
+                                            <span id="rating-display">Please select a rating</span>
+                                        </div>
+                                    </div>
+                                    <div class="form-text">Rate your overall experience from 1 (Poor) to 5 (Excellent)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5><i class="fas fa-comment"></i> Your Feedback</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="content" class="form-label">Comments *</label>
+                                    <textarea name="content" id="content" class="form-control" rows="6" 
+                                              placeholder="Please share your thoughts about the test drive experience, vehicle performance, customer service, etc."
+                                              required></textarea>
+                                    <div class="form-text">
+                                        Share details about your experience (minimum 10 characters)
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <a href="@Url.Action("Feedbacks")" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left"></i> Back to Feedbacks
+                                    </a>
+                                    <div>
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fas fa-paper-plane"></i> Submit Feedback
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.star-rating {
+    display: flex;
+    flex-direction: row-reverse;
+    font-size: 2.5rem;
+    justify-content: flex-end;
+    margin-bottom: 1rem;
+}
+
+.star-rating input[type="radio"] {
+    display: none;
+}
+
+.star-rating label {
+    color: #ddd;
+    cursor: pointer;
+    padding: 0 5px;
+    transition: color 0.2s;
+}
+
+.star-rating label:hover,
+.star-rating label:hover ~ label,
+.star-rating input[type="radio"]:checked ~ label {
+    color: #ffc107;
+}
+
+.rating-container {
+    text-align: center;
+    padding: 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    background-color: #f8f9fa;
+}
+
+.rating-text {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #495057;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ratingInputs = document.querySelectorAll('input[name="rating"]');
+    const ratingDisplay = document.getElementById('rating-display');
+    const contentTextarea = document.getElementById('content');
+    
+    const ratingTexts = {
+        '1': '⭐ Poor - Needs significant improvement',
+        '2': '⭐⭐ Fair - Below expectations',
+        '3': '⭐⭐⭐ Good - Meets expectations',
+        '4': '⭐⭐⭐⭐ Very Good - Exceeds expectations',
+        '5': '⭐⭐⭐⭐⭐ Excellent - Outstanding experience'
+    };
+    
+    ratingInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            if (this.checked) {
+                ratingDisplay.textContent = ratingTexts[this.value];
+                ratingDisplay.style.color = '#28a745';
+            }
+        });
+    });
+    
+    // Form validation
+    document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+        const rating = document.querySelector('input[name="rating"]:checked');
+        const content = contentTextarea.value.trim();
+        
+        if (!rating) {
+            e.preventDefault();
+            alert('Please select a rating.');
+            return false;
+        }
+        
+        if (content.length < 10) {
+            e.preventDefault();
+            alert('Please provide at least 10 characters in your feedback.');
+            contentTextarea.focus();
+            return false;
+        }
+        
+        return true;
+    });
+});
+</script>

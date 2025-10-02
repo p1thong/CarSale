@@ -131,6 +131,9 @@ namespace ASM1.WebMVC.Controllers
         {
             try
             {
+                // Truyền customerId để view xử lý
+                ViewBag.CustomerId = customerId;
+                
                 // Nếu có customerId, lấy thông tin khách hàng
                 if (customerId > 0)
                 {
@@ -174,6 +177,7 @@ namespace ASM1.WebMVC.Controllers
             int customerId,
             int variantId,
             decimal price,
+            int quantity = 1,
             decimal discount = 0
         )
         {
@@ -195,6 +199,26 @@ namespace ASM1.WebMVC.Controllers
                 if (price <= 0)
                 {
                     TempData["Error"] = "Price must be greater than 0.";
+                    return RedirectToAction(nameof(CreateQuotation), new { customerId });
+                }
+
+                if (quantity <= 0)
+                {
+                    TempData["Error"] = "Quantity must be greater than 0.";
+                    return RedirectToAction(nameof(CreateQuotation), new { customerId });
+                }
+
+                // Validate stock availability
+                var variant = await _vehicleService.GetVehicleVariantByIdAsync(variantId);
+                if (variant == null)
+                {
+                    TempData["Error"] = "Selected vehicle variant not found.";
+                    return RedirectToAction(nameof(CreateQuotation), new { customerId });
+                }
+
+                if (quantity > variant.Quantity)
+                {
+                    TempData["Error"] = $"Requested quantity ({quantity}) exceeds available stock ({variant.Quantity}).";
                     return RedirectToAction(nameof(CreateQuotation), new { customerId });
                 }
 
@@ -228,6 +252,20 @@ namespace ASM1.WebMVC.Controllers
             {
                 var quotation = await _salesService.ApproveQuotationAsync(quotationId);
                 return Json(new { success = true, message = "Quotation approved successfully!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RejectQuotation(int quotationId)
+        {
+            try
+            {
+                var quotation = await _salesService.RejectQuotationAsync(quotationId);
+                return Json(new { success = true, message = "Quotation rejected successfully!" });
             }
             catch (Exception ex)
             {
@@ -504,7 +542,8 @@ namespace ASM1.WebMVC.Controllers
                 return Json(variants.Select(v => new { 
                     value = v.VariantId, 
                     text = $"{v.Version} - {v.Color ?? "N/A"}", 
-                    price = v.Price 
+                    price = v.Price,
+                    quantity = v.Quantity 
                 }));
             }
             catch

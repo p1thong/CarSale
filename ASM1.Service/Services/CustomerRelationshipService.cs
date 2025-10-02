@@ -138,7 +138,8 @@ namespace ASM1.Service.Services
                 CustomerId = customerId,
                 Content = content,
                 Rating = rating,
-                FeedbackDate = DateTime.Now
+                FeedbackDate = DateTime.Now,
+                CreatedAt = DateTime.Now
             };
 
             return await _feedbackRepository.CreateFeedbackAsync(feedback);

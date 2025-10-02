@@ -85,7 +85,7 @@
                                 {
                                     <tr>
                                         <td>
-                                            <strong>#Q@quotation.QuotationId.ToString("000")</strong>
+                                            <strong>#Q@(quotation.QuotationId.ToString("000"))</strong>
                                         </td>
                                         <td>
                                             <div>
@@ -199,9 +199,18 @@
 
         function rejectQuotation(quotationId) {
             if (confirm(`Are you sure you want to reject quotation #Q${quotationId.toString().padStart(3, '0')}?`)) {
-                // Implementation for reject quotation
-                showSuccess('Quotation rejected successfully!');
-                location.reload();
+                $.post('@Url.Action("RejectQuotation")', { quotationId: quotationId })
+                    .done(function(response) {
+                        if (response.success) {
+                            showSuccess(response.message);
+                            location.reload();
+                        } else {
+                            showError(response.message);
+                        }
+                    })
+                    .fail(function() {
+                        showError('Failed to reject quotation. Please try again.');
+                    });
             }
         }
 

@@ -68,9 +68,42 @@ namespace ASM1.Repository.Repositories
 
         public async Task<Feedback> CreateFeedbackAsync(Feedback feedback)
         {
-            _context.Feedbacks.Add(feedback);
-            await _context.SaveChangesAsync();
-            return feedback;
+            try
+            {
+                // Try to get the next ID manually if IDENTITY is not working
+                var lastFeedback = await _context.Feedbacks
+                    .OrderByDescending(f => f.FeedbackId)
+                    .FirstOrDefaultAsync();
+                
+                if (lastFeedback != null)
+                {
+                    feedback.FeedbackId = lastFeedback.FeedbackId + 1;
+                }
+                else
+                {
+                    feedback.FeedbackId = 1;
+                }
+                
+                _context.Feedbacks.Add(feedback);
+                await _context.SaveChangesAsync();
+                return feedback;
+            }
+            catch (Exception)
+            {
+                // If manual ID setting fails, try without setting ID
+                var feedbackWithoutId = new Feedback
+                {
+                    CustomerId = feedback.CustomerId,
+                    Content = feedback.Content,
+                    Rating = feedback.Rating,
+                    FeedbackDate = feedback.FeedbackDate,
+                    CreatedAt = feedback.CreatedAt
+                };
+                
+                _context.Feedbacks.Add(feedbackWithoutId);
+                await _context.SaveChangesAsync();
+                return feedbackWithoutId;
+            }
         }
 
         public async Task<Feedback> UpdateFeedbackAsync(Feedback feedback)

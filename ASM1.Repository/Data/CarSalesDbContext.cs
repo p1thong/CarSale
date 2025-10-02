@@ -139,7 +139,10 @@ public partial class CarSalesDbContext : DbContext
 
             entity.ToTable("Feedback");
 
-            entity.Property(e => e.FeedbackId).ValueGeneratedOnAdd().HasColumnName("feedbackId");
+            entity.Property(e => e.FeedbackId)
+                .ValueGeneratedOnAdd()
+                .UseIdentityColumn()
+                .HasColumnName("feedbackId");
             entity
                 .Property(e => e.Content)
                 .HasMaxLength(500)
@@ -147,6 +150,8 @@ public partial class CarSalesDbContext : DbContext
                 .HasColumnName("content");
             entity.Property(e => e.CreatedAt).HasColumnType("datetime").HasColumnName("createdAt");
             entity.Property(e => e.CustomerId).HasColumnName("customerId");
+            entity.Property(e => e.FeedbackDate).HasColumnType("datetime").HasColumnName("feedbackDate");
+            entity.Property(e => e.Rating).HasColumnName("rating");
 
             entity
                 .HasOne(d => d.Customer)

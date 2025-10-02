@@ -11,11 +11,13 @@ namespace ASM1.WebMVC.Controllers
     {
         private readonly ILogger<AuthController> _logger;
         private readonly IAuthService _service;
+        private readonly IDealerService _dealerService;
 
-        public AuthController(ILogger<AuthController> logger, IAuthService service)
+        public AuthController(ILogger<AuthController> logger, IAuthService service, IDealerService dealerService)
         {
             _logger = logger;
             _service = service;
+            _dealerService = dealerService;
         }
 
         [HttpGet("Login")]
@@ -73,6 +75,7 @@ namespace ASM1.WebMVC.Controllers
             HttpContext.Session.SetString("UserId", user.UserId.ToString());
             HttpContext.Session.SetString("UserRole", user.Role.ToString());
             HttpContext.Session.SetString("UserName", user.FullName);
+            HttpContext.Session.SetString("UserEmail", user.Email);
 
             // Thêm thông báo thành công
             TempData["SuccessMessage"] = $"Đăng nhập thành công! Chào mừng {user.FullName} ({user.Role})";
@@ -105,6 +108,15 @@ namespace ASM1.WebMVC.Controllers
                 return View();
             }
 
+            // Tự động chọn dealer đầu tiên
+            var dealers = await _dealerService.GetAllDealersAsync();
+            var firstDealer = dealers.FirstOrDefault();
+            if (firstDealer == null)
+            {
+                ViewBag.Error = "Hệ thống chưa có đại lý nào. Vui lòng liên hệ admin.";
+                return View();
+            }
+
             // Tạo user mới với vai trò mặc định là customer
             var newUser = new User
             {
@@ -115,7 +127,7 @@ namespace ASM1.WebMVC.Controllers
                 Role = "customer",
             };
 
-            var result = await _service.Register(newUser);
+            var result = await _service.Register(newUser, firstDealer.DealerId);
             if (result)
             {
                 ViewBag.Success = "Đăng ký thành công! Vui lòng đăng nhập.";

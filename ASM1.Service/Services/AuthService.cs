@@ -32,9 +32,9 @@ namespace ASM1.Service.Services
             return await _repository.Login(email, password);
         }
 
-        public async Task<bool> Register(User user)
+        public async Task<bool> Register(User user, int? dealerId = null)
         {
-            return await _repository.Register(user);
+            return await _repository.Register(user, dealerId);
         }
 
         public async Task<User> GetUserById(int userId)

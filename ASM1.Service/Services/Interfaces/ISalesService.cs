@@ -15,6 +15,7 @@ namespace ASM1.Service.Services.Interfaces
         Task<Quotation?> GetQuotationAsync(int quotationId);
         Task<Quotation?> GetQuotationByIdAsync(int quotationId);
         Task<Quotation> ApproveQuotationAsync(int quotationId);
+        Task<Quotation> RejectQuotationAsync(int quotationId);
         Task<IEnumerable<Quotation>> GetPendingQuotationsAsync(int dealerId);
         Task<IEnumerable<Quotation>> GetQuotationsByDealerAsync(int dealerId);
         Task UpdateQuotationStatusAsync(int quotationId, string status);

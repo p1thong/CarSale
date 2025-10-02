@@ -120,6 +120,16 @@ namespace ASM1.Service.Services
             return await _quotationRepository.UpdateQuotationAsync(quotation);
         }
 
+        public async Task<Quotation> RejectQuotationAsync(int quotationId)
+        {
+            var quotation = await _quotationRepository.GetQuotationByIdAsync(quotationId);
+            if (quotation == null)
+                throw new ArgumentException("Quotation not found");
+
+            quotation.Status = "Rejected";
+            return await _quotationRepository.UpdateQuotationAsync(quotation);
+        }
+
         public async Task<IEnumerable<Quotation>> GetPendingQuotationsAsync(int dealerId)
         {
             return await _quotationRepository.GetQuotationsByDealerAsync(dealerId);
