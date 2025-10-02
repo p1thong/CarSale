@@ -56,6 +56,13 @@
                                             <i class="fas fa-calendar"></i> @(Model.ScheduledDate?.ToString("dd/MM/yyyy") ?? "Chưa xác định")
                                         </div>
                                     </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-sm-4"><strong>Giờ lái thử:</strong></div>
+                                        <div class="col-sm-8">
+                                            <i class="fas fa-clock"></i> @(Model.ScheduledTime?.ToString("HH:mm") ?? "Chưa xác định")
+                                        </div>
+                                    </div>
 
                                     <div class="row mb-3">
                                         <div class="col-sm-4"><strong>Trạng thái:</strong></div>
@@ -244,52 +251,64 @@
 @section Scripts {
     <script>
         function confirmTestDrive(testDriveId) {
+            console.log('confirmTestDrive called with testDriveId:', testDriveId);
             if (confirm('Bạn có chắc chắn muốn xác nhận lịch lái thử này?')) {
+                console.log('User confirmed, making AJAX request...');
                 $.post('@Url.Action("ConfirmTestDrive", "CustomerService")', { testDriveId: testDriveId })
                     .done(function(data) {
+                        console.log('AJAX response received:', data);
                         if (data.success) {
-                            toastr.success(data.message);
+                            alert(data.message);
                             location.reload();
                         } else {
-                            toastr.error(data.message);
+                            alert('Lỗi: ' + data.message);
                         }
                     })
-                    .fail(function() {
-                        toastr.error('Có lỗi xảy ra. Vui lòng thử lại.');
+                    .fail(function(xhr, status, error) {
+                        console.error('AJAX request failed:', xhr, status, error);
+                        alert('Có lỗi xảy ra. Vui lòng thử lại. Error: ' + error);
                     });
             }
         }
 
         function completeTestDrive(testDriveId) {
+            console.log('completeTestDrive called with testDriveId:', testDriveId);
             if (confirm('Bạn có chắc chắn muốn đánh dấu lái thử này là hoàn thành?')) {
+                console.log('User confirmed, making AJAX request...');
                 $.post('@Url.Action("CompleteTestDrive", "CustomerService")', { testDriveId: testDriveId })
                     .done(function(data) {
+                        console.log('AJAX response received:', data);
                         if (data.success) {
-                            toastr.success(data.message);
+                            alert(data.message);
                             location.reload();
                         } else {
-                            toastr.error(data.message);
+                            alert('Lỗi: ' + data.message);
                         }
                     })
-                    .fail(function() {
-                        toastr.error('Có lỗi xảy ra. Vui lòng thử lại.');
+                    .fail(function(xhr, status, error) {
+                        console.error('AJAX request failed:', xhr, status, error);
+                        alert('Có lỗi xảy ra. Vui lòng thử lại. Error: ' + error);
                     });
             }
         }
 
         function cancelTestDrive(testDriveId) {
+            console.log('cancelTestDrive called with testDriveId:', testDriveId);
             if (confirm('Bạn có chắc chắn muốn hủy lịch lái thử này?')) {
+                console.log('User confirmed, making AJAX request...');
                 $.post('@Url.Action("CancelTestDrive", "CustomerService")', { testDriveId: testDriveId })
                     .done(function(data) {
+                        console.log('AJAX response received:', data);
                         if (data.success) {
-                            toastr.success(data.message);
+                            alert(data.message);
                             location.reload();
                         } else {
-                            toastr.error(data.message);
+                            alert('Lỗi: ' + data.message);
                         }
                     })
-                    .fail(function() {
-                        toastr.error('Có lỗi xảy ra. Vui lòng thử lại.');
+                    .fail(function(xhr, status, error) {
+                        console.error('AJAX request failed:', xhr, status, error);
+                        alert('Có lỗi xảy ra. Vui lòng thử lại. Error: ' + error);
                     });
             }
         }

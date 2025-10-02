@@ -9,9 +9,14 @@ namespace ASM1.Service.Services.Interfaces
         Task<Customer?> GetCustomerByIdAsync(int customerId);
         Task<Customer> CreateCustomerAsync(Customer customer);
         Task<Customer> UpdateCustomerAsync(Customer customer);
-        
+
         // Test Drive Management
-        Task<TestDrive> ScheduleTestDriveAsync(int customerId, int variantId, DateOnly scheduledDate);
+        Task<TestDrive> ScheduleTestDriveAsync(
+            int customerId,
+            int variantId,
+            DateOnly scheduledDate,
+            TimeOnly? scheduledTime = null
+        );
         Task<TestDrive> ConfirmTestDriveAsync(int testDriveId);
         Task<TestDrive> CompleteTestDriveAsync(int testDriveId);
         Task<TestDrive?> GetTestDriveByIdAsync(int testDriveId);
@@ -36,7 +41,11 @@ namespace ASM1.Service.Services.Interfaces
 
         // Customer Care & Promotions
         Task<IEnumerable<Promotion>> GetCustomerEligiblePromotionsAsync(int customerId);
-        Task<CustomerCareReportDto> GenerateCustomerCareReportAsync(int dealerId, DateTime fromDate, DateTime toDate);
+        Task<CustomerCareReportDto> GenerateCustomerCareReportAsync(
+            int dealerId,
+            DateTime fromDate,
+            DateTime toDate
+        );
     }
 
     public class CustomerProfileDto

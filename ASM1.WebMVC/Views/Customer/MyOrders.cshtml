@@ -1,0 +1,277 @@
+@model IEnumerable<ASM1.Repository.Models.Order>
+
+@{
+    ViewData["Title"] = "My Orders";
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="fas fa-shopping-bag text-success"></i> My Orders</h2>
+                    <p class="text-muted">Track your vehicle orders and make payments</p>
+                </div>
+                <div>
+                    <a asp-action="Portal" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Portal
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Orders List -->
+    <div class="row">
+        <div class="col-12">
+            @if (Model.Any())
+            {
+                <div class="row">
+                    @foreach (var order in Model)
+                    {
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <span class="h6 mb-0">#O@order.OrderId.ToString("000")</span>
+                                    <span class="badge @GetStatusBadgeClass(order.Status ?? "Unknown")">
+                                        @(order.Status ?? "Unknown")
+                                    </span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <h6 class="text-primary">
+                                            <i class="fas fa-car"></i> @(order.Variant?.VehicleModel?.Name ?? "N/A")
+                                        </h6>
+                                        <p class="text-muted mb-1">
+                                            <small>@(order.Variant?.Version ?? "N/A") - @(order.Variant?.Color ?? "N/A")</small>
+                                        </p>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <div class="row">
+                                            <div class="col">
+                                                <small class="text-muted">Order Date:</small>
+                                                <div>@(order.OrderDate?.ToString("dd/MM/yyyy") ?? "N/A")</div>
+                                            </div>
+                                            <div class="col">
+                                                <small class="text-muted">Dealer:</small>
+                                                <div>@(order.Dealer?.FullName ?? "N/A")</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Payment Status -->
+                                    <div class="mb-3">
+                                        <small class="text-muted">Payment Status:</small>
+                                        <div class="progress mb-1">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: 0%" id="progress-@order.OrderId">
+                                                0%
+                                            </div>
+                                        </div>
+                                        <small class="text-muted" id="payment-status-@order.OrderId">Loading...</small>
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <div class="d-flex justify-content-between flex-wrap gap-2">
+                                        <button type="button" class="btn btn-outline-info btn-sm" 
+                                                onclick="viewOrderDetails(@order.OrderId)">
+                                            <i class="fas fa-eye"></i> Details
+                                        </button>
+                                        
+                                        @if (order.Status != "Completed" && order.Status != "Cancelled")
+                                        {
+                                            <a asp-action="PaymentOptions" asp-route-orderId="@order.OrderId" 
+                                               class="btn btn-primary btn-sm">
+                                                <i class="fas fa-credit-card"></i> Pay
+                                            </a>
+                                        }
+                                        else if (order.Status == "Completed")
+                                        {
+                                            <span class="btn btn-success btn-sm disabled">
+                                                <i class="fas fa-check-circle"></i> Complete
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-shopping-bag fa-4x text-muted mb-3"></i>
+                    <h4 class="text-muted">No Orders Found</h4>
+                    <p class="text-muted">You don't have any orders yet. Accept a quotation to create your first order.</p>
+                    <a asp-action="MyQuotations" class="btn btn-primary">
+                        <i class="fas fa-file-text"></i> View My Quotations
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Order Details Modal -->
+<div class="modal fade" id="orderModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fas fa-shopping-bag"></i> Order Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="orderDetails">
+                <!-- Details will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Pending" => "bg-warning text-dark",
+            "Confirmed" => "bg-info",
+            "Paid" => "bg-success",
+            "Processing" => "bg-primary",
+            "Completed" => "bg-success",
+            "Cancelled" => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Load payment status for each order
+            @foreach (var order in Model)
+            {
+                <text>loadPaymentStatus(@order.OrderId);</text>
+            }
+        });
+
+        function loadPaymentStatus(orderId) {
+            // Simulate loading payment status
+            // In a real implementation, you would make an AJAX call to get payment information
+            setTimeout(function() {
+                const randomProgress = Math.floor(Math.random() * 101);
+                $(`#progress-${orderId}`).css('width', `${randomProgress}%`).text(`${randomProgress}%`);
+                
+                if (randomProgress === 100) {
+                    $(`#payment-status-${orderId}`).text('Fully Paid').addClass('text-success');
+                } else if (randomProgress > 0) {
+                    $(`#payment-status-${orderId}`).text('Partially Paid').addClass('text-warning');
+                } else {
+                    $(`#payment-status-${orderId}`).text('Not Paid').addClass('text-danger');
+                }
+            }, Math.random() * 2000);
+        }
+
+        function viewOrderDetails(orderId) {
+            $('#orderDetails').html('<div class="text-center py-4"><i class="fas fa-spinner fa-spin fa-2x"></i><div class="mt-2">Loading order details...</div></div>');
+            $('#orderModal').modal('show');
+            
+            // Simulate loading order details
+            setTimeout(function() {
+                $('#orderDetails').html(`
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-primary"><i class="fas fa-car"></i> Vehicle Information</h6>
+                            <div class="card">
+                                <div class="card-body">
+                                    <p><strong>Order ID:</strong> #O${orderId.toString().padStart(3, '0')}</p>
+                                    <p><strong>Model:</strong> Loading...</p>
+                                    <p><strong>Version:</strong> Loading...</p>
+                                    <p><strong>Color:</strong> Loading...</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-primary"><i class="fas fa-credit-card"></i> Payment Information</h6>
+                            <div class="card">
+                                <div class="card-body">
+                                    <p><strong>Total Amount:</strong> Loading...</p>
+                                    <p><strong>Paid Amount:</strong> Loading...</p>
+                                    <p><strong>Remaining:</strong> Loading...</p>
+                                    <p><strong>Payment Status:</strong> Loading...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <h6 class="text-success"><i class="fas fa-history"></i> Order Timeline</h6>
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="timeline">
+                                        <div class="timeline-item">
+                                            <i class="fas fa-plus-circle text-success"></i>
+                                            <span>Order Created</span>
+                                            <small class="text-muted">Loading...</small>
+                                        </div>
+                                        <div class="timeline-item">
+                                            <i class="fas fa-check-circle text-info"></i>
+                                            <span>Order Confirmed</span>
+                                            <small class="text-muted">Pending...</small>
+                                        </div>
+                                        <div class="timeline-item">
+                                            <i class="fas fa-credit-card text-warning"></i>
+                                            <span>Payment Processing</span>
+                                            <small class="text-muted">Pending...</small>
+                                        </div>
+                                        <div class="timeline-item">
+                                            <i class="fas fa-truck text-primary"></i>
+                                            <span>Ready for Delivery</span>
+                                            <small class="text-muted">Pending...</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `);
+            }, 1000);
+        }
+    </script>
+
+    <style>
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-left: 2px solid #dee2e6;
+        }
+        
+        .timeline-item:last-child {
+            border-left: none;
+        }
+        
+        .timeline-item i {
+            position: absolute;
+            left: -1.5rem;
+            top: 0.25rem;
+            background: white;
+            padding: 0.25rem;
+        }
+        
+        .timeline-item span {
+            font-weight: 600;
+            display: block;
+        }
+        
+        .timeline-item small {
+            display: block;
+            margin-top: 0.25rem;
+        }
+    </style>
+}

@@ -48,7 +48,7 @@ namespace ASM1.Service.Services
         }
 
         // Test Drive Management
-        public async Task<TestDrive> ScheduleTestDriveAsync(int customerId, int variantId, DateOnly scheduledDate)
+        public async Task<TestDrive> ScheduleTestDriveAsync(int customerId, int variantId, DateOnly scheduledDate, TimeOnly? scheduledTime = null)
         {
             var customer = await _customerRepository.GetCustomerByIdAsync(customerId);
             if (customer == null)
@@ -59,7 +59,8 @@ namespace ASM1.Service.Services
                 CustomerId = customerId,
                 VariantId = variantId,
                 ScheduledDate = scheduledDate,
-                Status = "Scheduled"
+                ScheduledTime = scheduledTime,
+                Status = "Scheduled",
             };
 
             return await _testDriveRepository.CreateTestDriveAsync(testDrive);

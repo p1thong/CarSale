@@ -13,6 +13,8 @@ public partial class TestDrive
 
     public DateOnly? ScheduledDate { get; set; }
 
+    public TimeOnly? ScheduledTime { get; set; }
+
     public string? Status { get; set; }
 
     public virtual Customer Customer { get; set; } = null!;

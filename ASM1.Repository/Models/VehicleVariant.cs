@@ -17,6 +17,8 @@ public partial class VehicleVariant
 
     public decimal? Price { get; set; }
 
+    public int Quantity { get; set; } = 0;
+
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
     public virtual ICollection<Quotation> Quotations { get; set; } = new List<Quotation>();

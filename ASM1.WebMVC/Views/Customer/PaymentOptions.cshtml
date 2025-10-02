@@ -1,0 +1,368 @@
+@{
+    ViewData["Title"] = "Payment Options";
+    var order = ViewBag.Order;
+    var payments = ViewBag.Payments;
+    var remainingBalance = ViewBag.RemainingBalance;
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="fas fa-credit-card text-primary"></i> Payment Options</h2>
+                    <p class="text-muted">Make payment for Order #O@order.OrderId.ToString("000")</p>
+                </div>
+                <div>
+                    <a asp-action="MyOrders" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Orders
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Order Summary -->
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-shopping-bag"></i> Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <h6>@(order?.Variant?.VehicleModel?.Name ?? "N/A")</h6>
+                        <p class="text-muted">@(order?.Variant?.Version ?? "N/A") - @(order?.Variant?.Color ?? "N/A")</p>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Order ID:</strong></td>
+                                <td>#O@order.OrderId.ToString("000")</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Order Date:</strong></td>
+                                <td>@(order?.OrderDate?.ToString("dd/MM/yyyy") ?? "N/A")</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Status:</strong></td>
+                                <td>
+                                    <span class="badge @GetStatusBadgeClass(order?.Status ?? "Unknown")">
+                                        @(order?.Status ?? "Unknown")
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Dealer:</strong></td>
+                                <td>@(order?.Dealer?.FullName ?? "N/A")</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Summary -->
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-calculator"></i> Payment Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-2">
+                        <div class="col">Vehicle Price:</div>
+                        <div class="col text-end">$@(order?.Variant?.Price?.ToString("N0") ?? "0")</div>
+                    </div>
+                    @if (payments != null)
+                    {
+                        var paymentList = (IEnumerable<dynamic>)payments;
+                        if (paymentList.Any())
+                        {
+                            <div class="row mb-2">
+                                <div class="col">Total Paid:</div>
+                                <div class="col text-end text-success">$@(paymentList.Sum(p => (decimal)(p.Amount ?? 0)).ToString("N0"))</div>
+                            </div>
+                        }
+                    }
+                    <hr>
+                    <div class="row">
+                        <div class="col"><strong>Remaining Balance:</strong></div>
+                        <div class="col text-end">
+                            <strong class="@(remainingBalance > 0 ? "text-danger" : "text-success")">
+                                $@(remainingBalance?.ToString("N0") ?? "0")
+                            </strong>
+                        </div>
+                    </div>
+                    
+                    @if (remainingBalance <= 0)
+                    {
+                        <div class="alert alert-success mt-3 mb-0">
+                            <i class="fas fa-check-circle"></i> Order is fully paid!
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Form -->
+        <div class="col-lg-8">
+            @if (remainingBalance > 0)
+            {
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-credit-card"></i> Make Payment</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="paymentForm">
+                            <input type="hidden" id="orderId" value="@(order?.OrderId ?? 0)" />
+                            
+                            <!-- Payment Amount -->
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label">Payment Amount *</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="paymentAmount" 
+                                               max="@remainingBalance" min="1" step="0.01" required
+                                               placeholder="Enter amount">
+                                    </div>
+                                    <div class="form-text">Maximum: $@remainingBalance.ToString("N2")</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Quick Amounts</label>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        @if (remainingBalance >= 1000)
+                                        {
+                                            <button type="button" class="btn btn-outline-secondary btn-sm" 
+                                                    onclick="setPaymentAmount(1000)">$1,000</button>
+                                        }
+                                        @if (remainingBalance >= 5000)
+                                        {
+                                            <button type="button" class="btn btn-outline-secondary btn-sm" 
+                                                    onclick="setPaymentAmount(5000)">$5,000</button>
+                                        }
+                                        @if (remainingBalance >= 10000)
+                                        {
+                                            <button type="button" class="btn btn-outline-secondary btn-sm" 
+                                                    onclick="setPaymentAmount(10000)">$10,000</button>
+                                        }
+                                        <button type="button" class="btn btn-outline-primary btn-sm" 
+                                                onclick="setPaymentAmount(@remainingBalance)">Full Amount</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Payment Method -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <label class="form-label">Payment Method *</label>
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <div class="card payment-method" onclick="selectPaymentMethod('Credit Card')">
+                                                <div class="card-body text-center">
+                                                    <i class="fas fa-credit-card fa-2x text-primary mb-2"></i>
+                                                    <div>Credit Card</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="card payment-method" onclick="selectPaymentMethod('Bank Transfer')">
+                                                <div class="card-body text-center">
+                                                    <i class="fas fa-university fa-2x text-success mb-2"></i>
+                                                    <div>Bank Transfer</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="card payment-method" onclick="selectPaymentMethod('Cash')">
+                                                <div class="card-body text-center">
+                                                    <i class="fas fa-money-bill-wave fa-2x text-warning mb-2"></i>
+                                                    <div>Cash</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="card payment-method" onclick="selectPaymentMethod('Check')">
+                                                <div class="card-body text-center">
+                                                    <i class="fas fa-file-invoice-dollar fa-2x text-info mb-2"></i>
+                                                    <div>Check</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" id="paymentMethod" required />
+                                </div>
+                            </div>
+
+                            <!-- Payment Notes -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <label class="form-label">Payment Notes (Optional)</label>
+                                    <textarea class="form-control" id="paymentNotes" rows="3" 
+                                              placeholder="Add any notes about this payment..."></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="d-flex justify-content-between">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="resetForm()">
+                                            <i class="fas fa-undo"></i> Reset
+                                        </button>
+                                        <button type="submit" class="btn btn-success btn-lg">
+                                            <i class="fas fa-credit-card"></i> Process Payment
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            }
+
+            <!-- Payment History -->
+            @if (payments != null)
+            {
+                var paymentList = (IEnumerable<dynamic>)payments;
+                if (paymentList?.Any() == true)
+                {
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-history"></i> Payment History</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Amount</th>
+                                            <th>Method</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var payment in paymentList)
+                                        {
+                                            <tr>
+                                                <td>@(payment?.PaymentDate?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
+                                                <td>$@((payment?.Amount ?? 0).ToString("N0"))</td>
+                                                <td>@(payment?.PaymentMethod ?? "N/A")</td>
+                                                <td>
+                                                    <span class="badge bg-success">@(payment?.Status ?? "N/A")</span>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Pending" => "bg-warning text-dark",
+            "Confirmed" => "bg-info",
+            "Paid" => "bg-success",
+            "Processing" => "bg-primary",
+            "Completed" => "bg-success",
+            "Cancelled" => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+}
+
+@section Scripts {
+    <script>
+        let selectedPaymentMethod = '';
+
+        $('#paymentForm').on('submit', function(e) {
+            e.preventDefault();
+            
+            const orderId = $('#orderId').val();
+            const amount = $('#paymentAmount').val();
+            const paymentMethod = $('#paymentMethod').val();
+            
+            if (!amount || amount <= 0) {
+                alert('Please enter a valid payment amount.');
+                return;
+            }
+            
+            if (!paymentMethod) {
+                alert('Please select a payment method.');
+                return;
+            }
+            
+            if (confirm(`Process payment of $${parseFloat(amount).toLocaleString()} via ${paymentMethod}?`)) {
+                // Disable form
+                $('#paymentForm button').prop('disabled', true);
+                
+                $.post('@Url.Action("ProcessPayment")', {
+                    orderId: orderId,
+                    amount: amount,
+                    paymentMethod: paymentMethod
+                })
+                .done(function(response) {
+                    if (response.success) {
+                        alert(response.message);
+                        location.reload();
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                })
+                .fail(function() {
+                    alert('Failed to process payment. Please try again.');
+                })
+                .always(function() {
+                    $('#paymentForm button').prop('disabled', false);
+                });
+            }
+        });
+
+        function setPaymentAmount(amount) {
+            $('#paymentAmount').val(amount);
+        }
+
+        function selectPaymentMethod(method) {
+            $('.payment-method').removeClass('border-primary bg-light');
+            event.currentTarget.classList.add('border-primary', 'bg-light');
+            $('#paymentMethod').val(method);
+            selectedPaymentMethod = method;
+        }
+
+        function resetForm() {
+            $('#paymentForm')[0].reset();
+            $('.payment-method').removeClass('border-primary bg-light');
+            $('#paymentMethod').val('');
+            selectedPaymentMethod = '';
+        }
+    </script>
+
+    <style>
+        .payment-method {
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid #dee2e6;
+        }
+        
+        .payment-method:hover {
+            border-color: #007bff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .payment-method.border-primary {
+            border-color: #007bff !important;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+        }
+    </style>
+}

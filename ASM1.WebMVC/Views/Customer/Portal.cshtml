@@ -1,0 +1,237 @@
+@{
+    ViewData["Title"] = "Customer Portal";
+    var customer = ViewBag.Customer;
+    var quotationsCount = ViewBag.QuotationsCount;
+    var ordersCount = ViewBag.OrdersCount;
+    var pendingQuotationsCount = ViewBag.PendingQuotationsCount;
+    var approvedQuotationsCount = ViewBag.ApprovedQuotationsCount;
+}
+
+<div class="container-fluid">
+    <!-- Welcome Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2><i class="fas fa-user-circle"></i> Welcome, @(customer?.FullName ?? "Customer")</h2>
+                            <p class="mb-0">Manage your quotations, orders, and vehicle purchases</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="row text-center">
+                                <div class="col-6">
+                                    <div class="h4 mb-0">@quotationsCount</div>
+                                    <small>Quotations</small>
+                                </div>
+                                <div class="col-6">
+                                    <div class="h4 mb-0">@ordersCount</div>
+                                    <small>Orders</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center bg-warning text-white">
+                <div class="card-body">
+                    <i class="fas fa-clock fa-2x mb-2"></i>
+                    <h4>@pendingQuotationsCount</h4>
+                    <p class="mb-0">Pending Quotations</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-success text-white">
+                <div class="card-body">
+                    <i class="fas fa-check-circle fa-2x mb-2"></i>
+                    <h4>@approvedQuotationsCount</h4>
+                    <p class="mb-0">Approved Quotations</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-info text-white">
+                <div class="card-body">
+                    <i class="fas fa-shopping-cart fa-2x mb-2"></i>
+                    <h4>@ordersCount</h4>
+                    <p class="mb-0">Total Orders</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-secondary text-white">
+                <div class="card-body">
+                    <i class="fas fa-user-edit fa-2x mb-2"></i>
+                    <h4>Profile</h4>
+                    <p class="mb-0">Manage Account</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-bolt"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="d-grid">
+                                <a asp-action="MyQuotations" class="btn btn-outline-primary btn-lg">
+                                    <i class="fas fa-file-text me-2"></i>
+                                    View My Quotations
+                                    @if (pendingQuotationsCount > 0)
+                                    {
+                                        <span class="badge bg-warning text-dark ms-2">@pendingQuotationsCount new</span>
+                                    }
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-grid">
+                                <a asp-action="MyOrders" class="btn btn-outline-success btn-lg">
+                                    <i class="fas fa-shopping-bag me-2"></i>
+                                    View My Orders
+                                    @if (ordersCount > 0)
+                                    {
+                                        <span class="badge bg-info ms-2">@ordersCount total</span>
+                                    }
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="d-grid">
+                                <a asp-controller="EVM" asp-action="Index" class="btn btn-outline-info btn-lg">
+                                    <i class="fas fa-car me-2"></i>
+                                    Browse Vehicles
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-grid">
+                                <a asp-controller="CustomerService" asp-action="ScheduleTestDrive" class="btn btn-outline-warning btn-lg">
+                                    <i class="fas fa-key me-2"></i>
+                                    Schedule Test Drive
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer Information -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> How to Use Customer Portal</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-file-text text-primary"></i> Quotations</h6>
+                            <ul class="list-unstyled">
+                                <li>• View all your vehicle quotations</li>
+                                <li>• Check quotation status and pricing</li>
+                                <li>• Accept approved quotations to create orders</li>
+                                <li>• Download quotation documents</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-shopping-cart text-success"></i> Orders</h6>
+                            <ul class="list-unstyled">
+                                <li>• Track your vehicle orders</li>
+                                <li>• Make payments on existing orders</li>
+                                <li>• View delivery schedules</li>
+                                <li>• Download order contracts</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-car text-info"></i> Vehicle Browsing</h6>
+                            <ul class="list-unstyled">
+                                <li>• Browse available vehicles</li>
+                                <li>• Compare vehicle specifications</li>
+                                <li>• View vehicle images and details</li>
+                                <li>• Request quotations for vehicles</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-key text-warning"></i> Test Drives</h6>
+                            <ul class="list-unstyled">
+                                <li>• Schedule test drive appointments</li>
+                                <li>• View test drive history</li>
+                                <li>• Reschedule or cancel appointments</li>
+                                <li>• Provide feedback after test drives</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-user"></i> Account Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-user-circle fa-4x text-primary"></i>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Name:</strong></td>
+                                <td>@(customer?.FullName ?? "N/A")</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Email:</strong></td>
+                                <td>@(customer?.Email ?? "N/A")</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Phone:</strong></td>
+                                <td>@(customer?.Phone ?? "N/A")</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Member Since:</strong></td>
+                                <td>@(customer?.CreatedAt?.ToString("MMM yyyy") ?? "N/A")</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="d-grid">
+                        <button type="button" class="btn btn-outline-primary">
+                            <i class="fas fa-edit"></i> Edit Profile
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Auto-refresh stats every 30 seconds
+            setInterval(function() {
+                location.reload();
+            }, 30000);
+        });
+    </script>
+}

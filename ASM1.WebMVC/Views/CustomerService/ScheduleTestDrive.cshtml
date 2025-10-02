@@ -1,4 +1,4 @@
-@model ASM1.Repository.Models.TestDrive
+@model ASM1.WebMVC.Models.TestDriveRequestModel
 
 @{
     ViewData["Title"] = "Schedule Test Drive";
@@ -21,54 +21,32 @@
                     </div>
 
                     <form asp-action="ScheduleTestDrive" method="post" id="testDriveForm">
-                        @if (ViewBag.IsGuestUser == true)
-                        {
-                            <!-- Guest User Information -->
-                            <div class="alert alert-info">
-                                <i class="fas fa-info-circle"></i>
-                                <strong>Guest Registration:</strong> Please provide your contact information for the test drive appointment.
+                        
+                        <!-- Customer Selection -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5><i class="fas fa-user"></i> Customer Selection</h5>
                             </div>
-                            
-                            <div class="card mb-4">
-                                <div class="card-header">
-                                    <h5><i class="fas fa-user"></i> Contact Information</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label for="guestName" class="form-label">Full Name *</label>
-                                                <input type="text" id="guestName" name="guestName" class="form-control" required />
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label for="guestEmail" class="form-label">Email *</label>
-                                                <input type="email" id="guestEmail" name="guestEmail" class="form-control" required />
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label for="guestPhone" class="form-label">Phone Number *</label>
-                                                <input type="tel" id="guestPhone" name="guestPhone" class="form-control" required />
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label for="guestLicense" class="form-label">Driver's License Number *</label>
-                                                <input type="text" id="guestLicense" name="guestLicense" class="form-control" required />
-                                            </div>
-                                        </div>
-                                    </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="customerId" class="form-label">Select Customer *</label>
+                                    <select name="customerId" id="customerId" class="form-select" required>
+                                        <option value="">-- Choose a customer --</option>
+                                        @if (ViewBag.Customers != null)
+                                        {
+                                            @foreach (var customer in ViewBag.Customers)
+                                            {
+                                                var isSelected = ViewBag.PreselectedCustomerId != null && customer.CustomerId == (int)ViewBag.PreselectedCustomerId;
+                                                <option value="@customer.CustomerId" selected="@isSelected">
+                                                    @customer.FullName (@customer.Email)
+                                                </option>
+                                            }
+                                        }
+                                    </select>
+                                    <div class="form-text">Select an existing customer</div>
                                 </div>
                             </div>
-                        }
-                        else
-                        {
-                            <input type="hidden" name="customerId" value="@ViewBag.CustomerId" />
-                        }
+                        </div>
                         
                         <div class="row">
                             <div class="col-md-8">
@@ -104,19 +82,23 @@
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="mb-3">
-                                                    <label for="preferredTime" class="form-label">
-                                                        <i class="fas fa-clock"></i> Preferred Time
+                                                    <label for="scheduledTime" class="form-label">
+                                                        <i class="fas fa-clock"></i> Preferred Time *
                                                     </label>
-                                                    <select id="preferredTime" class="form-select">
+                                                    <select name="scheduledTime" id="scheduledTime" class="form-select" required>
                                                         <option value="">-- Select time --</option>
+                                                        <option value="08:00">08:00 AM</option>
                                                         <option value="09:00">09:00 AM</option>
                                                         <option value="10:00">10:00 AM</option>
                                                         <option value="11:00">11:00 AM</option>
+                                                        <option value="12:00">12:00 PM</option>
+                                                        <option value="13:00">01:00 PM</option>
                                                         <option value="14:00">02:00 PM</option>
                                                         <option value="15:00">03:00 PM</option>
                                                         <option value="16:00">04:00 PM</option>
+                                                        <option value="17:00">05:00 PM</option>
                                                     </select>
-                                                    <div class="form-text">Available time slots</div>
+                                                    <div class="form-text">Available time slots (same customer can book multiple times per day)</div>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
@@ -125,11 +107,10 @@
                                                         <i class="fas fa-hourglass-half"></i> Duration
                                                     </label>
                                                     <select id="duration" class="form-select">
-                                                        <option value="30">30 minutes</option>
-                                                        <option value="60" selected>1 hour</option>
-                                                        <option value="120">2 hours</option>
+                                                        <option value="45" selected>45 minutes</option>
                                                     </select>
-                                                    <div class="form-text">Expected test drive duration</div>
+                                                    </select>
+                                                    <div class="form-text">Expected test drive duration (default: 45 minutes)</div>
                                                 </div>
                                             </div>
                                         </div>
@@ -168,6 +149,9 @@
                                             <li><i class="fas fa-check text-success"></i> Must be 21+ years old</li>
                                             <li><i class="fas fa-check text-success"></i> Insurance coverage provided</li>
                                             <li><i class="fas fa-check text-success"></i> Professional guidance included</li>
+                                            <li><i class="fas fa-clock text-info"></i> Default duration: 45 minutes</li>
+                                            <li><i class="fas fa-user-check text-info"></i> Same customer can book multiple time slots per day</li>
+                                            <li><i class="fas fa-car text-warning"></i> Each vehicle can only be booked once per time slot</li>
                                         </ul>
                                     </div>
                                 </div>
@@ -289,6 +273,44 @@
                     alert('Please select a future date for your test drive');
                     return false;
                 }
+                
+                // Check for time slot conflicts
+                var schedDate = $('#scheduledDate').val();
+                var schedTime = $('#scheduledTime').val();
+                
+                if (!schedTime) {
+                    e.preventDefault();
+                    alert('Please select a time slot');
+                    return false;
+                }
+                
+                // Prevent default form submission to check for conflicts first
+                e.preventDefault();
+                
+                // Check for existing appointments
+                var selectedVariantId = $('#variantId').val();
+                var selectedCustomerId = $('#customerId').val();
+                $.ajax({
+                    url: '/CustomerService/CheckTimeSlotAvailability',
+                    type: 'POST',
+                    data: {
+                        date: schedDate,
+                        time: schedTime,
+                        variantId: selectedVariantId,
+                        customerId: selectedCustomerId
+                    },
+                    success: function(response) {
+                        if (response.available) {
+                            // If time slot is available, submit the form
+                            $('#testDriveForm')[0].submit();
+                        } else {
+                            alert(response.message || 'This time slot is already booked for the selected vehicle. Please choose a different time or vehicle.');
+                        }
+                    },
+                    error: function() {
+                        alert('Error checking time slot availability. Please try again.');
+                    }
+                });
             });
         });
         
