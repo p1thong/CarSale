@@ -99,6 +99,35 @@
                             </ul>
                         </li>
 
+                        <!-- Customer Portal -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-dark" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user-shield"></i> Customer Portal
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><h6 class="dropdown-header">Customer Dashboard</h6></li>
+                                <li><a class="dropdown-item" asp-controller="Customer" asp-action="Portal">
+                                    <i class="fas fa-tachometer-alt"></i> My Dashboard
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><h6 class="dropdown-header">My Services</h6></li>
+                                <li><a class="dropdown-item" asp-controller="Customer" asp-action="MyQuotations">
+                                    <i class="fas fa-file-text"></i> My Quotations
+                                </a></li>
+                                <li><a class="dropdown-item" asp-controller="Customer" asp-action="MyOrders">
+                                    <i class="fas fa-shopping-bag"></i> My Orders
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><h6 class="dropdown-header">Vehicle Services</h6></li>
+                                <li><a class="dropdown-item" asp-controller="EVM" asp-action="Index">
+                                    <i class="fas fa-car"></i> Browse Vehicles
+                                </a></li>
+                                <li><a class="dropdown-item" asp-controller="CustomerService" asp-action="ScheduleTestDrive">
+                                    <i class="fas fa-key"></i> Schedule Test Drive
+                                </a></li>
+                            </ul>
+                        </li>
+
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">
                                 <i class="fas fa-shield-alt"></i> Privacy

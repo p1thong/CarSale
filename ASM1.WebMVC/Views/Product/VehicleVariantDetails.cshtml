@@ -85,6 +85,21 @@
                                         <span class="text-muted">Not specified</span>
                                     }
                                 </dd>
+                                
+                                <dt class="col-sm-5">Stock Quantity:</dt>
+                                <dd class="col-sm-7">
+                                    <span class="badge @(Model.Quantity > 10 ? "bg-success" : Model.Quantity > 5 ? "bg-warning" : Model.Quantity > 0 ? "bg-danger" : "bg-secondary") fs-6">
+                                        @Model.Quantity @(Model.Quantity == 1 ? "unit" : "units")
+                                    </span>
+                                    @if (Model.Quantity == 0)
+                                    {
+                                        <small class="text-muted d-block">Out of stock</small>
+                                    }
+                                    else if (Model.Quantity <= 5)
+                                    {
+                                        <small class="text-warning d-block">Low stock</small>
+                                    }
+                                </dd>
                             </dl>
                         </div>
                     </div>

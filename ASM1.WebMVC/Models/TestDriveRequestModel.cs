@@ -7,7 +7,9 @@ namespace ASM1.WebMVC.Models
         public int? CustomerId { get; set; }
         public int VariantId { get; set; }
         public DateOnly ScheduledDate { get; set; }
-        public string? PreferredTime { get; set; }
+        
+        [Required(ErrorMessage = "Please select a time slot")]
+        public TimeOnly ScheduledTime { get; set; }
         
         // Guest user information
         public string? GuestName { get; set; }

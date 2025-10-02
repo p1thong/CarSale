@@ -76,6 +76,14 @@
                                     <span asp-validation-for="Price" class="text-danger"></span>
                                 </div>
                             </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Quantity" class="form-label">Stock Quantity *</label>
+                                    <input asp-for="Quantity" type="number" class="form-control" min="0" />
+                                    <small class="form-text text-muted">Number of units available in inventory</small>
+                                    <span asp-validation-for="Quantity" class="text-danger"></span>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="d-flex justify-content-end gap-2">
@@ -107,6 +115,13 @@
                         
                         <dt class="col-sm-4">Price:</dt>
                         <dd class="col-sm-8">@(Model.Price?.ToString("N0")) VNĐ</dd>
+                        
+                        <dt class="col-sm-4">Quantity:</dt>
+                        <dd class="col-sm-8">
+                            <span class="badge @(Model.Quantity > 10 ? "bg-success" : Model.Quantity > 5 ? "bg-warning" : Model.Quantity > 0 ? "bg-danger" : "bg-secondary")">
+                                @Model.Quantity units
+                            </span>
+                        </dd>
                     </dl>
                 </div>
             </div>

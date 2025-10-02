@@ -12,7 +12,8 @@ namespace ASM1.WebMVC.Controllers
 
         public CustomerServiceController(
             ICustomerRelationshipService customerService,
-            IVehicleService vehicleService)
+            IVehicleService vehicleService
+        )
         {
             _customerService = customerService;
             _vehicleService = vehicleService;
@@ -28,12 +29,12 @@ namespace ASM1.WebMVC.Controllers
                 {
                     var selectedDate = DateOnly.FromDateTime(date.Value);
                     var testDrives = await _customerService.GetTestDriveScheduleAsync(selectedDate);
-                    
+
                     if (testDrives == null || !testDrives.Any())
                     {
                         ViewBag.Message = "Không có lịch lái thử nào cho ngày đã chọn.";
                     }
-                    
+
                     ViewBag.SelectedDate = selectedDate;
                     return View(testDrives);
                 }
@@ -41,12 +42,12 @@ namespace ASM1.WebMVC.Controllers
                 {
                     // Hiển thị tất cả test drives gần đây (không filter theo ngày)
                     var allTestDrives = await _customerService.GetAllTestDrivesAsync();
-                    
+
                     if (allTestDrives == null || !allTestDrives.Any())
                     {
                         ViewBag.Message = "Chưa có lịch lái thử nào.";
                     }
-                    
+
                     ViewBag.SelectedDate = DateOnly.FromDateTime(DateTime.Today);
                     return View(allTestDrives);
                 }
@@ -63,23 +64,28 @@ namespace ASM1.WebMVC.Controllers
         {
             try
             {
-                // If no customer ID provided, create a simple form for guest users
-                if (!customerId.HasValue)
-                {
-                    ViewBag.IsGuestUser = true;
-                    ViewBag.PreselectedVariantId = variantId;
-                }
-                else
-                {
-                    ViewBag.CustomerId = customerId;
-                    ViewBag.IsGuestUser = false;
-                }
-                
+                // Load all customers for selection
+                var dealerId = GetCurrentDealerId();
+                var customers = await _customerService.GetCustomersByDealerAsync(dealerId);
+                ViewBag.Customers = customers;
+
+                // If customer ID provided, preselect it
+                ViewBag.PreselectedCustomerId = customerId;
+                ViewBag.PreselectedVariantId = variantId;
+
                 // Load available vehicle variants
                 var variants = await _vehicleService.GetAvailableVariantsAsync();
                 ViewBag.VehicleVariants = variants;
-                
-                return View();
+
+                // Create empty model for the form
+                var model = new TestDriveRequestModel
+                {
+                    CustomerId = customerId,
+                    VariantId = variantId ?? 0,
+                    ScheduledDate = DateOnly.FromDateTime(DateTime.Now.AddDays(1)), // Default to tomorrow
+                };
+
+                return View(model);
             }
             catch (Exception ex)
             {
@@ -93,49 +99,61 @@ namespace ASM1.WebMVC.Controllers
         {
             try
             {
+                // Validation: Check if the variant is already booked for the same date & time
+                var existingTestDrives = await _customerService.GetTestDriveScheduleAsync(
+                    model.ScheduledDate
+                );
+                var isVariantBooked = existingTestDrives.Any(td =>
+                    td.VariantId == model.VariantId
+                    && td.ScheduledTime == model.ScheduledTime
+                    && (td.Status == "Scheduled" || td.Status == "Confirmed") // ✅ chỉ block active booking
+                );
+
+                if (isVariantBooked)
+                {
+                    TempData["Error"] =
+                        "Xe này đã được đặt lịch lái thử vào khung giờ bạn chọn. Vui lòng chọn giờ khác.";
+                    var customers = await _customerService.GetCustomersByDealerAsync(
+                        GetCurrentDealerId()
+                    );
+                    var variants = await _vehicleService.GetAvailableVariantsAsync();
+                    ViewBag.Customers = customers;
+                    ViewBag.VehicleVariants = variants;
+                    return View(model);
+                }
+
                 int customerId;
-                
-                // If no existing customer ID, create a new customer from guest info
+
+                // Check if customer is selected
                 if (!model.CustomerId.HasValue || model.CustomerId.Value == 0)
                 {
-                    if (string.IsNullOrEmpty(model.GuestName) || string.IsNullOrEmpty(model.GuestEmail) || string.IsNullOrEmpty(model.GuestPhone))
-                    {
-                        TempData["Error"] = "Guest information is required when scheduling as a guest.";
-                        return RedirectToAction(nameof(ScheduleTestDrive), new { variantId = model.VariantId });
-                    }
-
-                    // Create new customer
-                    var dealerId = 1; // Default dealer ID, you might want to get this from session or config
-                    var newCustomer = new Customer
-                    {
-                        DealerId = dealerId,
-                        FullName = model.GuestName,
-                        Email = model.GuestEmail,
-                        Phone = model.GuestPhone,
-                        Birthday = model.GuestBirthday
-                    };
-
-                    var createdCustomer = await _customerService.CreateCustomerAsync(newCustomer);
-                    customerId = createdCustomer.CustomerId;
+                    TempData["Error"] = "Please select a customer.";
+                    return RedirectToAction(
+                        nameof(ScheduleTestDrive),
+                        new { variantId = model.VariantId }
+                    );
                 }
-                else
-                {
-                    customerId = model.CustomerId.Value;
-                }
+
+                customerId = model.CustomerId.Value;
 
                 var testDrive = await _customerService.ScheduleTestDriveAsync(
                     customerId,
                     model.VariantId,
-                    model.ScheduledDate
+                    model.ScheduledDate,
+                    model.ScheduledTime
                 );
-                
-                TempData["Success"] = $"Test drive scheduled successfully! Test Drive ID: {testDrive.TestDriveId}";
+
+                TempData["Success"] =
+                    $"Test drive scheduled successfully! Test Drive ID: {testDrive.TestDriveId}";
                 return RedirectToAction(nameof(TestDrives));
             }
             catch (Exception ex)
             {
                 TempData["Error"] = $"Error scheduling test drive: {ex.Message}";
-                return RedirectToAction(nameof(ScheduleTestDrive), new { customerId = model.CustomerId, variantId = model.VariantId });
+                return RedirectToAction(
+                    nameof(ScheduleTestDrive),
+                    new { customerId = model.CustomerId, variantId = model.VariantId }
+                );
             }
         }
 
@@ -145,16 +163,18 @@ namespace ASM1.WebMVC.Controllers
             try
             {
                 var variants = await _vehicleService.GetAvailableVariantsAsync();
-                var variantList = variants.Select(v => new
-                {
-                    id = v.VariantId,
-                    name = $"{v.VehicleModel.Manufacturer.Name} {v.VehicleModel.Name} {v.Version}",
-                    price = v.Price,
-                    color = v.Color,
-                    year = v.ProductYear,
-                    category = v.VehicleModel.Category
-                }).ToList();
-                
+                var variantList = variants
+                    .Select(v => new
+                    {
+                        id = v.VariantId,
+                        name = $"{v.VehicleModel.Manufacturer.Name} {v.VehicleModel.Name} {v.Version}",
+                        price = v.Price,
+                        color = v.Color,
+                        year = v.ProductYear,
+                        category = v.VehicleModel.Category,
+                    })
+                    .ToList();
+
                 return Json(variantList);
             }
             catch (Exception ex)
@@ -168,11 +188,16 @@ namespace ASM1.WebMVC.Controllers
         {
             try
             {
+                Console.WriteLine($"ConfirmTestDrive called with testDriveId: {testDriveId}");
                 await _customerService.ConfirmTestDriveAsync(testDriveId);
-                return Json(new { success = true, message = "Test drive confirmed successfully!" });
+                Console.WriteLine($"ConfirmTestDrive successful for testDriveId: {testDriveId}");
+                return Json(
+                    new { success = true, message = "Lịch lái thử đã được xác nhận thành công!" }
+                );
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"ConfirmTestDrive error: {ex.Message}");
                 return Json(new { success = false, message = ex.Message });
             }
         }
@@ -182,11 +207,16 @@ namespace ASM1.WebMVC.Controllers
         {
             try
             {
+                Console.WriteLine($"CompleteTestDrive called with testDriveId: {testDriveId}");
                 await _customerService.CompleteTestDriveAsync(testDriveId);
-                return Json(new { success = true, message = "Test drive completed successfully!" });
+                Console.WriteLine($"CompleteTestDrive successful for testDriveId: {testDriveId}");
+                return Json(
+                    new { success = true, message = "Lái thử đã được hoàn thành thành công!" }
+                );
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"CompleteTestDrive error: {ex.Message}");
                 return Json(new { success = false, message = ex.Message });
             }
         }
@@ -371,7 +401,7 @@ namespace ASM1.WebMVC.Controllers
             {
                 // Cần thêm method GetTestDriveByIdAsync vào service
                 var testDrive = await _customerService.GetTestDriveByIdAsync(id);
-                
+
                 if (testDrive == null)
                 {
                     TempData["Error"] = "Không tìm thấy thông tin lịch lái thử.";
@@ -393,11 +423,75 @@ namespace ASM1.WebMVC.Controllers
             try
             {
                 await _customerService.UpdateTestDriveStatusAsync(testDriveId, "Cancelled");
-                return Json(new { success = true, message = "Lịch lái thử đã được hủy thành công!" });
+                return Json(
+                    new { success = true, message = "Lịch lái thử đã được hủy thành công!" }
+                );
             }
             catch (Exception ex)
             {
                 return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CheckTimeSlotAvailability(
+            string date,
+            string time,
+            int? variantId = null,
+            int? customerId = null
+        )
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(date) || string.IsNullOrEmpty(time))
+                {
+                    return Json(new { available = false, message = "Date and time are required" });
+                }
+
+                // Parse date and time
+                var parsedDate = DateOnly.Parse(date);
+                var parsedTime = TimeOnly.Parse(time);
+
+                // Lấy danh sách test drive trong ngày
+                var existingTestDrives = await _customerService.GetTestDriveScheduleAsync(
+                    parsedDate
+                );
+
+                var conflictingDrive = existingTestDrives?.FirstOrDefault(td =>
+                    td.ScheduledTime.HasValue
+                    && td.ScheduledTime.Value == parsedTime
+                    && td.VariantId == variantId
+                    && td.CustomerId != customerId // Chỉ block nếu là KHÁCH KHÁC
+                    && (td.Status == "Scheduled" || td.Status == "Confirmed") // Chỉ tính active booking
+                );
+
+                if (conflictingDrive != null)
+                {
+                    var vehicleName = conflictingDrive.Variant?.VehicleModel?.Name ?? "Unknown";
+                    var variantName = conflictingDrive.Variant?.Version ?? "Unknown";
+                    var customerName = conflictingDrive.Customer?.FullName ?? "Another customer";
+
+                    return Json(
+                        new
+                        {
+                            available = false,
+                            message = $"Xe {vehicleName} - {variantName} đã được đặt bởi {customerName} lúc {parsedTime:HH:mm}. Vui lòng chọn giờ khác.",
+                        }
+                    );
+                }
+
+                // ✅ Nếu đến đây tức là slot trống hoặc chỉ có lịch Completed/Cancelled
+                return Json(new { available = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(
+                    new
+                    {
+                        available = false,
+                        message = "Error checking time slot availability: " + ex.Message,
+                    }
+                );
             }
         }
 

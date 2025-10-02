@@ -1,0 +1,251 @@
+@model IEnumerable<ASM1.Repository.Models.Quotation>
+
+@{
+    ViewData["Title"] = "My Quotations";
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="fas fa-file-text text-primary"></i> My Quotations</h2>
+                    <p class="text-muted">View and manage your vehicle quotations</p>
+                </div>
+                <div>
+                    <a asp-action="Portal" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Portal
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quotations List -->
+    <div class="row">
+        <div class="col-12">
+            @if (Model.Any())
+            {
+                <div class="row">
+                    @foreach (var quotation in Model)
+                    {
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <span class="h6 mb-0">#Q@quotation.QuotationId.ToString("000")</span>
+                                    <span class="badge @GetStatusBadgeClass(quotation.Status ?? "Unknown")">
+                                        @(quotation.Status ?? "Unknown")
+                                    </span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <h6 class="text-primary">
+                                            <i class="fas fa-car"></i> @(quotation.Variant?.VehicleModel?.Name ?? "N/A")
+                                        </h6>
+                                        <p class="text-muted mb-1">
+                                            <small>@(quotation.Variant?.Version ?? "N/A") - @(quotation.Variant?.Color ?? "N/A")</small>
+                                        </p>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <div class="row">
+                                            <div class="col">
+                                                <small class="text-muted">Price:</small>
+                                                <div class="h5 text-success">$@quotation.Price.ToString("N0")</div>
+                                            </div>
+                                            <div class="col">
+                                                <small class="text-muted">Date:</small>
+                                                <div>@quotation.CreatedAt?.ToString("dd/MM/yyyy")</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <small class="text-muted">Dealer:</small>
+                                        <div>@(quotation.Dealer?.FullName ?? "N/A")</div>
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <div class="d-flex justify-content-between">
+                                        <button type="button" class="btn btn-outline-info btn-sm" 
+                                                onclick="viewDetails(@quotation.QuotationId)">
+                                            <i class="fas fa-eye"></i> Details
+                                        </button>
+                                        
+                                        @if (quotation.Status == "Approved")
+                                        {
+                                            <button type="button" class="btn btn-success btn-sm" 
+                                                    onclick="acceptQuotation(@quotation.QuotationId)">
+                                                <i class="fas fa-check"></i> Accept
+                                            </button>
+                                        }
+                                        else if (quotation.Status == "Pending")
+                                        {
+                                            <span class="btn btn-warning btn-sm disabled">
+                                                <i class="fas fa-clock"></i> Waiting
+                                            </span>
+                                        }
+                                        else if (quotation.Status == "Accepted")
+                                        {
+                                            <span class="btn btn-success btn-sm disabled">
+                                                <i class="fas fa-check-circle"></i> Accepted
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-file-text fa-4x text-muted mb-3"></i>
+                    <h4 class="text-muted">No Quotations Found</h4>
+                    <p class="text-muted">You don't have any quotations yet. Browse vehicles to request a quotation.</p>
+                    <a asp-controller="EVM" asp-action="Index" class="btn btn-primary">
+                        <i class="fas fa-car"></i> Browse Vehicles
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Quotation Details Modal -->
+<div class="modal fade" id="quotationModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-file-text"></i> Quotation Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="quotationDetails">
+                <!-- Details will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Pending" => "bg-warning text-dark",
+            "Approved" => "bg-success",
+            "Rejected" => "bg-danger",
+            "Accepted" => "bg-info",
+            _ => "bg-secondary"
+        };
+    }
+}
+
+@section Scripts {
+    <script>
+        function viewDetails(quotationId) {
+            $('#quotationDetails').html('<div class="text-center py-4"><i class="fas fa-spinner fa-spin fa-2x"></i><div class="mt-2">Loading...</div></div>');
+            $('#quotationModal').modal('show');
+            
+            // Use the same endpoint as Sales controller
+            $.get('/Sales/GetQuotationDetailsJson', { quotationId: quotationId })
+                .done(function(response) {
+                    if (response.success) {
+                        const data = response.data;
+                        $('#quotationDetails').html(`
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <h6 class="text-primary"><i class="fas fa-car"></i> Vehicle Information</h6>
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <p><strong>Model:</strong> ${data.vehicle.model}</p>
+                                            <p><strong>Version:</strong> ${data.vehicle.version}</p>
+                                            <p><strong>Color:</strong> ${data.vehicle.color}</p>
+                                            <p><strong>Base Price:</strong> $${data.vehicle.basePrice.toLocaleString()}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-primary"><i class="fas fa-info-circle"></i> Quotation Details</h6>
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <p><strong>Quotation ID:</strong> #Q${data.quotationId.toString().padStart(3, '0')}</p>
+                                            <p><strong>Status:</strong> <span class="badge ${getStatusBadgeClass(data.status)}">${data.status}</span></p>
+                                            <p><strong>Created:</strong> ${data.createdAt}</p>
+                                            <p><strong>Dealer:</strong> ${data.dealer.name}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <h6 class="text-success"><i class="fas fa-dollar-sign"></i> Pricing Details</h6>
+                                    <div class="card bg-light">
+                                        <div class="card-body">
+                                            <div class="row mb-2">
+                                                <div class="col">Base Price:</div>
+                                                <div class="col text-end">$${data.vehicle.basePrice.toLocaleString()}</div>
+                                            </div>
+                                            <div class="row mb-2">
+                                                <div class="col">Discount:</div>
+                                                <div class="col text-end text-danger">-$${(data.vehicle.basePrice - data.price).toLocaleString()}</div>
+                                            </div>
+                                            <hr>
+                                            <div class="row">
+                                                <div class="col"><strong>Your Price:</strong></div>
+                                                <div class="col text-end"><strong class="text-success h5">$${data.price.toLocaleString()}</strong></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `);
+                    } else {
+                        $('#quotationDetails').html(`
+                            <div class="text-center text-danger py-4">
+                                <i class="fas fa-exclamation-triangle fa-2x"></i>
+                                <div class="mt-2">${response.message}</div>
+                            </div>
+                        `);
+                    }
+                })
+                .fail(function() {
+                    $('#quotationDetails').html(`
+                        <div class="text-center text-danger py-4">
+                            <i class="fas fa-exclamation-triangle fa-2x"></i>
+                            <div class="mt-2">Failed to load quotation details.</div>
+                        </div>
+                    `);
+                });
+        }
+
+        function acceptQuotation(quotationId) {
+            if (confirm('Accept this quotation and create an order?')) {
+                $.post('@Url.Action("AcceptQuotation")', { quotationId: quotationId })
+                    .done(function(response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    })
+                    .fail(function() {
+                        alert('Failed to accept quotation. Please try again.');
+                    });
+            }
+        }
+
+        function getStatusBadgeClass(status) {
+            switch(status) {
+                case 'Pending': return 'bg-warning text-dark';
+                case 'Approved': return 'bg-success';
+                case 'Rejected': return 'bg-danger';
+                case 'Accepted': return 'bg-info';
+                default: return 'bg-secondary';
+            }
+        }
+    </script>
+}

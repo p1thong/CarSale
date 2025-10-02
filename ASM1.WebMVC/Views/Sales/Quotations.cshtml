@@ -38,12 +38,12 @@
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">Date From</label>
-                            <input type="date" class="form-control" id="dateFrom">
+                            <label class="form-label">Search Customer</label>
+                            <input type="text" class="form-control" id="customerSearch" placeholder="Search by name or email...">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">Date To</label>
-                            <input type="date" class="form-control" id="dateTo">
+                            <label class="form-label">Vehicle Search</label>
+                            <input type="text" class="form-control" id="vehicleSearch" placeholder="Search by vehicle name...">
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">&nbsp;</label>
@@ -89,14 +89,14 @@
                                         </td>
                                         <td>
                                             <div>
-                                                <strong>@quotation.Customer.FullName</strong><br>
-                                                <small class="text-muted">@quotation.Customer.Email</small>
+                                                <strong>@(quotation.Customer?.FullName ?? "N/A")</strong><br>
+                                                <small class="text-muted">@(quotation.Customer?.Email ?? "N/A")</small>
                                             </div>
                                         </td>
                                         <td>
                                             <div>
-                                                <strong>@quotation.Variant.VehicleModel.Name</strong><br>
-                                                <small class="text-muted">@quotation.Variant.Version - @quotation.Variant.Color</small>
+                                                <strong>@(quotation.Variant?.VehicleModel?.Name ?? "N/A")</strong><br>
+                                                <small class="text-muted">@(quotation.Variant?.Version ?? "N/A") - @(quotation.Variant?.Color ?? "N/A")</small>
                                             </div>
                                         </td>
                                         <td>
@@ -104,8 +104,8 @@
                                         </td>
                                         <td>@quotation.CreatedAt?.ToString("dd/MM/yyyy HH:mm")</td>
                                         <td>
-                                            <span class="badge @GetStatusBadgeClass(quotation.Status) fs-6">
-                                                @quotation.Status
+                                            <span class="badge @GetStatusBadgeClass(quotation.Status ?? "Unknown") fs-6">
+                                                @(quotation.Status ?? "Unknown")
                                             </span>
                                         </td>
                                         <td>
@@ -220,34 +220,154 @@
 
         function viewQuotationDetails(quotationId) {
             // Load quotation details in modal
-            $('#quotationDetails').html('<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</div>');
+            $('#quotationDetails').html('<div class="text-center py-4"><i class="fas fa-spinner fa-spin fa-2x"></i><div class="mt-2">Loading quotation details...</div></div>');
             $('#quotationModal').modal('show');
             
-            // Simulate loading details
-            setTimeout(function() {
-                $('#quotationDetails').html(`
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6>Customer Information</h6>
-                            <p>Loading customer details...</p>
+            // Load details from API
+            $.get('@Url.Action("GetQuotationDetailsJson")', { quotationId: quotationId })
+                .done(function(response) {
+                    if (response.success) {
+                        const data = response.data;
+                        $('#quotationDetails').html(`
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <h6 class="text-primary"><i class="fas fa-user"></i> Customer Information</h6>
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <p><strong>Name:</strong> ${data.customer.name}</p>
+                                            <p><strong>Email:</strong> ${data.customer.email}</p>
+                                            <p><strong>Phone:</strong> ${data.customer.phone}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-primary"><i class="fas fa-car"></i> Vehicle Information</h6>
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <p><strong>Model:</strong> ${data.vehicle.model}</p>
+                                            <p><strong>Version:</strong> ${data.vehicle.version}</p>
+                                            <p><strong>Color:</strong> ${data.vehicle.color}</p>
+                                            <p><strong>Base Price:</strong> $${data.vehicle.basePrice.toLocaleString()}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <h6 class="text-primary"><i class="fas fa-info-circle"></i> Quotation Details</h6>
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <p><strong>Quotation ID:</strong> #Q${data.quotationId.toString().padStart(3, '0')}</p>
+                                            <p><strong>Status:</strong> <span class="badge ${getStatusBadgeClass(data.status)}">${data.status}</span></p>
+                                            <p><strong>Created:</strong> ${data.createdAt}</p>
+                                            <p><strong>Dealer:</strong> ${data.dealer.name}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-success"><i class="fas fa-dollar-sign"></i> Pricing</h6>
+                                    <div class="card bg-light">
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col">Base Price:</div>
+                                                <div class="col text-end">$${data.vehicle.basePrice.toLocaleString()}</div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col">Discount:</div>
+                                                <div class="col text-end text-danger">-$${(data.vehicle.basePrice - data.price).toLocaleString()}</div>
+                                            </div>
+                                            <hr>
+                                            <div class="row">
+                                                <div class="col"><strong>Final Price:</strong></div>
+                                                <div class="col text-end"><strong class="text-success h5">$${data.price.toLocaleString()}</strong></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `);
+                    } else {
+                        $('#quotationDetails').html(`
+                            <div class="text-center text-danger py-4">
+                                <i class="fas fa-exclamation-triangle fa-2x"></i>
+                                <div class="mt-2">${response.message}</div>
+                            </div>
+                        `);
+                    }
+                })
+                .fail(function() {
+                    $('#quotationDetails').html(`
+                        <div class="text-center text-danger py-4">
+                            <i class="fas fa-exclamation-triangle fa-2x"></i>
+                            <div class="mt-2">Failed to load quotation details. Please try again.</div>
                         </div>
-                        <div class="col-md-6">
-                            <h6>Vehicle Information</h6>
-                            <p>Loading vehicle details...</p>
-                        </div>
-                    </div>
-                `);
-            }, 1000);
+                    `);
+                });
+        }
+
+        function getStatusBadgeClass(status) {
+            switch(status) {
+                case 'Pending': return 'bg-warning text-dark';
+                case 'Approved': return 'bg-success';
+                case 'Rejected': return 'bg-danger';
+                default: return 'bg-secondary';
+            }
         }
 
         function filterQuotations() {
-            const status = $('#statusFilter').val();
-            const dateFrom = $('#dateFrom').val();
-            const dateTo = $('#dateTo').val();
+            const status = $('#statusFilter').val().toLowerCase();
+            const customerSearch = $('#customerSearch').val().toLowerCase();
+            const vehicleSearch = $('#vehicleSearch').val().toLowerCase();
             
-            // Implement filtering logic
-            console.log('Filtering:', { status, dateFrom, dateTo });
+            $('tbody tr').each(function() {
+                const row = $(this);
+                const statusText = row.find('td:eq(5) .badge').text().toLowerCase();
+                const customerText = row.find('td:eq(1)').text().toLowerCase();
+                const vehicleText = row.find('td:eq(2)').text().toLowerCase();
+                
+                let showRow = true;
+                
+                // Filter by status
+                if (status && !statusText.includes(status)) {
+                    showRow = false;
+                }
+                
+                // Filter by customer
+                if (customerSearch && !customerText.includes(customerSearch)) {
+                    showRow = false;
+                }
+                
+                // Filter by vehicle
+                if (vehicleSearch && !vehicleText.includes(vehicleSearch)) {
+                    showRow = false;
+                }
+                
+                if (showRow) {
+                    row.show();
+                } else {
+                    row.hide();
+                }
+            });
+            
+            // Update results count
+            const visibleRows = $('tbody tr:visible').length;
+            const totalRows = $('tbody tr').length;
+            
+            if (visibleRows === 0 && (status || customerSearch || vehicleSearch)) {
+                if (!$('#no-results').length) {
+                    $('tbody').append('<tr id="no-results"><td colspan="7" class="text-center text-muted py-4"><i class="fas fa-search"></i> No quotations found matching your search criteria.</td></tr>');
+                }
+            } else {
+                $('#no-results').remove();
+            }
         }
+
+        // Add real-time search
+        $(document).ready(function() {
+            $('#customerSearch, #vehicleSearch').on('input', function() {
+                filterQuotations();
+            });
+        });
 
         function showSuccess(message) {
             // You can implement toast notifications here

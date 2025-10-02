@@ -83,24 +83,25 @@
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Discount (%)</label>
-                                <input type="number" class="form-control" id="discount" min="0" max="50" step="0.1" value="0" onchange="calculateFinalPrice()">
+                                <label class="form-label">Discount (%) *</label>
+                                <input type="number" class="form-control" id="discount" min="0" max="100" step="0.1" value="0" onchange="calculateFinalPrice()" required>
+                                <div class="form-text">Discount must be between 0% and 100%</div>
                             </div>
                         </div>
 
                         <div class="row mb-4">
                             <div class="col-md-6">
-                                <label class="form-label">Additional Fees</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    <input type="number" class="form-control" id="additionalFees" min="0" step="100" value="0" onchange="calculateFinalPrice()">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
                                 <label class="form-label">Final Price *</label>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
                                     <input type="number" class="form-control" name="price" id="finalPrice" required readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">You Save</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="text" class="form-control text-success" id="youSave" readonly>
                                 </div>
                             </div>
                         </div>
@@ -283,12 +284,19 @@
         function calculateFinalPrice() {
             const basePrice = parseFloat($('#basePrice').val().replace(/,/g, '')) || 0;
             const discount = parseFloat($('#discount').val()) || 0;
-            const additionalFees = parseFloat($('#additionalFees').val()) || 0;
+            
+            // Validate discount range
+            if (discount < 0 || discount > 100) {
+                alert('Discount must be between 0% and 100%');
+                $('#discount').val(0);
+                return;
+            }
             
             const discountAmount = basePrice * (discount / 100);
-            const finalPrice = basePrice - discountAmount + additionalFees;
+            const finalPrice = basePrice - discountAmount;
             
             $('#finalPrice').val(finalPrice);
+            $('#youSave').val(discountAmount.toLocaleString());
             updateSummary();
         }
 
@@ -297,8 +305,8 @@
             const vehicleName = $('#modelSelect option:selected').text() + ' - ' + $('#variantSelect option:selected').text();
             const basePrice = $('#basePrice').val();
             const discount = $('#discount').val();
-            const additionalFees = $('#additionalFees').val();
             const finalPrice = $('#finalPrice').val();
+            const youSave = $('#youSave').val();
 
             if (finalPrice && finalPrice > 0) {
                 $('#quotationSummary').html(`
@@ -317,11 +325,7 @@
                     </div>
                     <div class="row mb-2">
                         <div class="col">Discount (${discount}%):</div>
-                        <div class="col text-end text-danger">-$${(parseFloat(basePrice.replace(/,/g, '')) * discount / 100).toLocaleString()}</div>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col">Additional Fees:</div>
-                        <div class="col text-end">$${parseFloat(additionalFees).toLocaleString()}</div>
+                        <div class="col text-end text-danger">-$${youSave}</div>
                     </div>
                     <hr>
                     <div class="row">

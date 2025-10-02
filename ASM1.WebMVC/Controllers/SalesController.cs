@@ -173,11 +173,37 @@ namespace ASM1.WebMVC.Controllers
         public async Task<IActionResult> CreateQuotation(
             int customerId,
             int variantId,
-            decimal price
+            decimal price,
+            decimal discount = 0
         )
         {
             try
             {
+                // Validate input parameters
+                if (customerId <= 0)
+                {
+                    TempData["Error"] = "Please select a valid customer.";
+                    return RedirectToAction(nameof(CreateQuotation), new { customerId });
+                }
+
+                if (variantId <= 0)
+                {
+                    TempData["Error"] = "Please select a valid vehicle variant.";
+                    return RedirectToAction(nameof(CreateQuotation), new { customerId });
+                }
+
+                if (price <= 0)
+                {
+                    TempData["Error"] = "Price must be greater than 0.";
+                    return RedirectToAction(nameof(CreateQuotation), new { customerId });
+                }
+
+                if (discount < 0 || discount > 100)
+                {
+                    TempData["Error"] = "Discount must be between 0% and 100%.";
+                    return RedirectToAction(nameof(CreateQuotation), new { customerId });
+                }
+
                 var dealerId = GetCurrentDealerId();
                 var quotation = await _salesService.CreateQuotationAsync(
                     customerId,
@@ -484,6 +510,47 @@ namespace ASM1.WebMVC.Controllers
             catch
             {
                 return Json(new object[0]);
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetQuotationDetailsJson(int quotationId)
+        {
+            try
+            {
+                var quotation = await _salesService.GetQuotationAsync(quotationId);
+                if (quotation == null)
+                {
+                    return Json(new { success = false, message = "Quotation not found" });
+                }
+
+                return Json(new { 
+                    success = true,
+                    data = new {
+                        quotationId = quotation.QuotationId,
+                        status = quotation.Status,
+                        price = quotation.Price,
+                        createdAt = quotation.CreatedAt?.ToString("dd/MM/yyyy HH:mm"),
+                        customer = new {
+                            name = quotation.Customer?.FullName ?? "N/A",
+                            email = quotation.Customer?.Email ?? "N/A",
+                            phone = quotation.Customer?.Phone ?? "N/A"
+                        },
+                        vehicle = new {
+                            model = quotation.Variant?.VehicleModel?.Name ?? "N/A",
+                            version = quotation.Variant?.Version ?? "N/A",
+                            color = quotation.Variant?.Color ?? "N/A",
+                            basePrice = quotation.Variant?.Price ?? 0
+                        },
+                        dealer = new {
+                            name = quotation.Dealer?.FullName ?? "N/A"
+                        }
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
             }
         }
     }

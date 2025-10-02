@@ -4,6 +4,7 @@ using ASM1.Repository.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ASM1.Repository.Migrations
 {
     [DbContext(typeof(CarSalesDbContext))]
-    partial class CarSalesDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251002112215_AddQuantityToVehicleVariant")]
+    partial class AddQuantityToVehicleVariant
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -431,9 +434,6 @@ namespace ASM1.Repository.Migrations
                     b.Property<DateOnly?>("ScheduledDate")
                         .HasColumnType("date")
                         .HasColumnName("scheduledDate");
-
-                    b.Property<TimeOnly?>("ScheduledTime")
-                        .HasColumnType("time");
 
                     b.Property<string>("Status")
                         .HasMaxLength(50)

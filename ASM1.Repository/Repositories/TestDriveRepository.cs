@@ -20,6 +20,7 @@ namespace ASM1.Repository.Repositories
                 .TestDrives.Include(t => t.Customer)
                 .Include(t => t.Variant)
                 .ThenInclude(v => v.VehicleModel)
+                .OrderByDescending(t => t.TestDriveId)
                 .ToListAsync();
         }
 
@@ -98,7 +99,7 @@ namespace ASM1.Repository.Repositories
                 .Include(t => t.Customer)
                 .Include(t => t.Variant)
                 .ThenInclude(v => v.VehicleModel)
-                .OrderBy(t => t.ScheduledDate)
+                .OrderByDescending(t => t.TestDriveId)
                 .ToListAsync();
         }
     }

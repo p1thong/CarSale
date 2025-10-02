@@ -93,6 +93,7 @@
                                         <th>Year</th>
                                         <th>Color</th>
                                         <th>Price</th>
+                                        <th>Quantity</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -139,6 +140,11 @@
                                                 {
                                                     <span class="text-muted">Price on request</span>
                                                 }
+                                            </td>
+                                            <td>
+                                                <span class="badge @(variant.Quantity > 10 ? "bg-success" : variant.Quantity > 5 ? "bg-warning" : variant.Quantity > 0 ? "bg-danger" : "bg-secondary")">
+                                                    @variant.Quantity @(variant.Quantity == 1 ? "unit" : "units")
+                                                </span>
                                             </td>
                                             <td>
                                                 <div class="btn-group btn-group-sm">
