@@ -3,76 +3,257 @@
     Layout = "_Layout";
 }
 
-<div class="container">
-    <div class="row justify-content-center mt-5">
-        <div class="col-md-8 col-lg-6">
-            <div class="card shadow-lg border-0 rounded-lg mt-5">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="text-center font-weight-bold my-2">Đăng ký tài khoản</h3>
-                </div>
-                <div class="card-body">
-                    <form method="post" asp-controller="Auth" asp-action="Register">
-                        <div class="row mb-3">
-                            <div class="col-md-12">
-                                <div class="form-floating mb-3">
-                                    <input class="form-control" id="fullName" name="fullName" type="text" placeholder="Họ và tên" required />
-                                    <label for="fullName">Họ và tên</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-12">
-                                <div class="form-floating mb-3">
-                                    <input class="form-control" id="email" name="email" type="email" placeholder="name@example.com" required />
-                                    <label for="email">Email</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-12">
-                                <div class="form-floating mb-3">
-                                    <input class="form-control" id="phone" name="phone" type="tel" placeholder="Số điện thoại" />
-                                    <label for="phone">Số điện thoại</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <div class="form-floating mb-3">
-                                    <input class="form-control" id="password" name="password" type="password" placeholder="Mật khẩu" required />
-                                    <label for="password">Mật khẩu</label>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-floating mb-3">
-                                    <input class="form-control" id="confirmPassword" name="confirmPassword" type="password" placeholder="Xác nhận mật khẩu" required />
-                                    <label for="confirmPassword">Xác nhận mật khẩu</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mt-4 mb-0">
-                            <div class="d-grid">
-                                <button class="btn btn-primary btn-block" type="submit">Đăng ký</button>
-                            </div>
-                        </div>
-                    </form>
-                    @if (ViewBag.Error != null)
-                    {
-                        <div class="alert alert-danger mt-3">
-                            <i class="bi bi-exclamation-triangle-fill me-2"></i>@ViewBag.Error
-                        </div>
-                    }
-                    @if (ViewBag.Success != null)
-                    {
-                        <div class="alert alert-success mt-3">
-                            <i class="bi bi-check-circle-fill me-2"></i>@ViewBag.Success
-                        </div>
-                    }
-                </div>
-                <div class="card-footer text-center py-3">
-                    <div class="small"><a href="/Auth/Login" class="text-primary">Đã có tài khoản? Đăng nhập ngay!</a></div>
-                </div>
+<style>
+    body {
+        margin: 0;
+        height: 100vh;
+        font-family: 'Orbitron', sans-serif;
+        color: #fff;
+        overflow: hidden;
+        position: relative;
+        background: #000; /* fallback background */
+    }
+
+    /* Background slideshow */
+    .slideshow {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        overflow: hidden;
+        background: #000;
+    }
+
+        .slideshow img {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            animation: slideShow 18s infinite;
+        }
+
+            .slideshow img:nth-child(1) {
+                animation-delay: 0s;
+            }
+
+            .slideshow img:nth-child(2) {
+                animation-delay: 6s;
+            }
+
+            .slideshow img:nth-child(3) {
+                animation-delay: 12s;
+            }
+
+    @@keyframes slideShow {
+        0% {
+            opacity: 0;
+        }
+
+        5% {
+            opacity: 1;
+        }
+
+        30% {
+            opacity: 1;
+        }
+
+        35% {
+            opacity: 0;
+        }
+
+        100% {
+            opacity: 0;
+        }
+    }
+
+    /* Dark overlay */
+    body::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 1;
+    }
+
+    /* Glass card */
+    .glass-card {
+        position: relative;
+        z-index: 2;
+        backdrop-filter: blur(20px);
+        background: rgba(0, 0, 0, 0.75);
+        border-radius: 20px;
+        padding: 2rem;
+        border: 2px solid #ff0000;
+        box-shadow: 0 0 30px rgba(255, 0, 0, 0.6), inset 0 0 10px rgba(255,255,255,0.2);
+        animation: fadeInUp 1.2s ease;
+    }
+
+    .brand-header img {
+        width: 80px;
+        filter: drop-shadow(0 0 15px #ff0000);
+    }
+
+    .brand-header h2 {
+        font-weight: 900;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        margin-top: 15px;
+        background: linear-gradient(90deg, #ff0000, #ff9900, #ffff00);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .brand-header p {
+        font-size: 0.9rem;
+        letter-spacing: 2px;
+        color: #ddd;
+        margin-bottom: 20px;
+    }
+
+    /* Inputs */
+    .form-floating input {
+        background: rgba(20, 20, 20, 0.9) !important;
+        border: 2px solid rgba(255, 0, 0, 0.6);
+        border-radius: 12px;
+        color: #fff !important;
+        transition: 0.4s;
+    }
+
+        .form-floating input:focus {
+            border-color: #ffcc00;
+            box-shadow: 0 0 20px #ff0000, inset 0 0 10px #000;
+            transform: scale(1.05);
+        }
+
+    .form-floating label {
+        color: #ffcccc;
+        font-weight: 600;
+    }
+
+    /* Button */
+    .btn-primary {
+        border: none;
+        border-radius: 50px;
+        padding: 14px;
+        font-weight: 800;
+        text-transform: uppercase;
+        background: radial-gradient(circle, #ff0000 0%, #990000 80%);
+        color: #fff;
+        letter-spacing: 2px;
+        box-shadow: 0 0 20px #ff0000;
+        transition: all 0.2s ease-in-out;
+        animation: pulse 2s infinite;
+    }
+
+        .btn-primary:hover {
+            transform: scale(1.1) rotate(-1deg);
+            box-shadow: 0 0 30px #ff3300, 0 0 50px #ff0000 inset;
+        }
+
+    @@keyframes pulse {
+        0% {
+            box-shadow: 0 0 10px #ff0000;
+        }
+
+        50% {
+            box-shadow: 0 0 25px #ff6600;
+        }
+
+        100% {
+            box-shadow: 0 0 10px #ff0000;
+        }
+    }
+
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(40px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<!-- Background slideshow -->
+<div class="slideshow">
+    <img src="https://hips.hearstapps.com/hmg-prod/images/2025-tesla-model-s-1-672d42e172407.jpg?crop=0.465xw:0.466xh;0.285xw,0.361xh&resize=1200:*" alt="Tesla">
+    <img src="https://static-cms-prod.vinfast.com/statics/2024-06/vf7-1.webp" alt="VinFast">
+    <img src="https://hips.hearstapps.com/hmg-prod/images/2023-bmw-ix-m60-108-1653422436.jpg" alt="BMW iX">
+</div>
+
+<div class="container h-100 d-flex align-items-center justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="glass-card">
+            <div class="brand-header text-center">
+                <img src="https://cdn-icons-png.flaticon.com/512/2967/2967350.png" alt="EV Logo" style="width:80px; filter: drop-shadow(0 0 10px #EFBF04);">
+                <h2>EV CAR SHOP</h2>
+                <p>Register Your Electric Journey</p>
             </div>
+
+            <form method="post" asp-controller="Auth" asp-action="Register">
+                <div class="form-floating mb-3">
+                    <input class="form-control" id="fullName" name="fullName" type="text" placeholder="Họ và tên" required />
+                    <label for="fullName">Họ và tên</label>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input class="form-control" id="email" name="email" type="email" placeholder="name@example.com" required />
+                    <label for="email">Email</label>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input class="form-control" id="phone" name="phone" type="tel" placeholder="Số điện thoại" />
+                    <label for="phone">Số điện thoại</label>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-floating mb-3">
+                            <input class="form-control" id="password" name="password" type="password" placeholder="Mật khẩu" required />
+                            <label for="password">Mật khẩu</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating mb-3">
+                            <input class="form-control" id="confirmPassword" name="confirmPassword" type="password" placeholder="Xác nhận mật khẩu" required />
+                            <label for="confirmPassword">Xác nhận mật khẩu</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid mt-3">
+                    <button class="btn btn-primary btn-block" type="submit">Đăng ký</button>
+                </div>
+            </form>
+
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger mt-3">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>@ViewBag.Error
+                </div>
+            }
+
+            @if (ViewBag.Success != null)
+            {
+                <div class="alert alert-success mt-3">
+                    <i class="bi bi-check-circle-fill me-2"></i>@ViewBag.Success
+                </div>
+            }
+
+            <p class="mt-4 text-center">
+                <small>
+                    Đã có tài khoản?
+                    <a href="/Auth/Login" class="text-warning fw-bold">Đăng nhập ngay!</a>
+                </small>
+            </p>
         </div>
     </div>
 </div>
