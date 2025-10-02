@@ -25,26 +25,51 @@
                         <!-- Customer Selection -->
                         <div class="card mb-4">
                             <div class="card-header">
-                                <h5><i class="fas fa-user"></i> Customer Selection</h5>
+                                <h5><i class="fas fa-user"></i> Customer Information</h5>
                             </div>
                             <div class="card-body">
-                                <div class="mb-3">
-                                    <label for="customerId" class="form-label">Select Customer *</label>
-                                    <select name="customerId" id="customerId" class="form-select" required>
-                                        <option value="">-- Choose a customer --</option>
-                                        @if (ViewBag.Customers != null)
+                                @if (ViewBag.IsCurrentCustomer == true)
+                                {
+                                    <!-- Hiển thị thông tin Customer hiện tại (không cho chọn) -->
+                                    <div class="mb-3">
+                                        <label class="form-label">Customer</label>
+                                        @if (ViewBag.Customers != null && ((IEnumerable<ASM1.Repository.Models.Customer>)ViewBag.Customers).Any())
                                         {
-                                            @foreach (var customer in ViewBag.Customers)
-                                            {
-                                                var isSelected = ViewBag.PreselectedCustomerId != null && customer.CustomerId == (int)ViewBag.PreselectedCustomerId;
-                                                <option value="@customer.CustomerId" selected="@isSelected">
-                                                    @customer.FullName (@customer.Email)
-                                                </option>
-                                            }
+                                            var currentCustomer = ((IEnumerable<ASM1.Repository.Models.Customer>)ViewBag.Customers).First();
+                                            <div class="form-control-plaintext bg-light p-3 rounded">
+                                                <strong>@currentCustomer.FullName</strong><br>
+                                                <small class="text-muted">@currentCustomer.Email</small>
+                                                @if (!string.IsNullOrEmpty(currentCustomer.Phone))
+                                                {
+                                                    <br><small class="text-muted">@currentCustomer.Phone</small>
+                                                }
+                                            </div>
+                                            <input type="hidden" name="customerId" value="@currentCustomer.CustomerId" />
                                         }
-                                    </select>
-                                    <div class="form-text">Select an existing customer</div>
-                                </div>
+                                        <div class="form-text">Your account information</div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <!-- Cho Dealer Staff chọn Customer -->
+                                    <div class="mb-3">
+                                        <label for="customerId" class="form-label">Select Customer *</label>
+                                        <select name="customerId" id="customerId" class="form-select" required>
+                                            <option value="">-- Choose a customer --</option>
+                                            @if (ViewBag.Customers != null)
+                                            {
+                                                @foreach (var customer in ViewBag.Customers)
+                                                {
+                                                    var isSelected = ViewBag.PreselectedCustomerId != null && customer.CustomerId == (int)ViewBag.PreselectedCustomerId;
+                                                    <option value="@customer.CustomerId" selected="@isSelected">
+                                                        @customer.FullName (@customer.Email)
+                                                    </option>
+                                                }
+                                            }
+                                        </select>
+                                        <div class="form-text">Select an existing customer</div>
+                                    </div>
+                                }
                             </div>
                         </div>
                         

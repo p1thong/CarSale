@@ -18,20 +18,27 @@ namespace ASM1.WebMVC.Middleware
             var userRole = session.GetString("UserRole");
             var userId = session.GetString("UserId");
 
+            // Debug logging
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] UserRole: {userRole}, UserId: {userId}");
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] Required roles: {string.Join(", ", _allowedRoles)}");
+
             // Check if user is logged in
             if (string.IsNullOrEmpty(userId))
             {
+                System.Diagnostics.Debug.WriteLine("[DEBUG] User not logged in - redirecting to login");
                 context.Result = new RedirectToActionResult("Login", "Auth", null);
                 return;
             }
 
-            // Check if user has required role
-            if (!_allowedRoles.Contains(userRole))
+            // Check if user has required role (case-insensitive comparison)
+            if (!_allowedRoles.Any(role => string.Equals(role, userRole, StringComparison.OrdinalIgnoreCase)))
             {
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] Access denied - user role '{userRole}' not in allowed roles");
                 context.Result = new ForbidResult();
                 return;
             }
 
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] Access granted for role '{userRole}'");
             base.OnActionExecuting(context);
         }
     }
@@ -49,21 +56,26 @@ namespace ASM1.WebMVC.Middleware
 
     public class DealerOnlyAttribute : RoleAuthorizationAttribute
     {
-        public DealerOnlyAttribute() : base("DealerManager", "DealerStaff") { }
+        public DealerOnlyAttribute() : base("Dealer", "DealerManager", "DealerStaff") { }
     }
 
     public class DealerManagerOnlyAttribute : RoleAuthorizationAttribute
     {
-        public DealerManagerOnlyAttribute() : base("DealerManager") { }
+        public DealerManagerOnlyAttribute() : base("Dealer", "DealerManager") { }
     }
 
     public class DealerStaffOnlyAttribute : RoleAuthorizationAttribute
     {
-        public DealerStaffOnlyAttribute() : base("DealerManager", "DealerStaff") { }
+        public DealerStaffOnlyAttribute() : base("Dealer", "DealerManager", "DealerStaff") { }
     }
 
     public class CustomerOnlyAttribute : RoleAuthorizationAttribute
     {
-        public CustomerOnlyAttribute() : base("Customer") { }
+        public CustomerOnlyAttribute() : base("Customer" , "customer") { }
+    }
+
+    public class CustomerAndDealerAttribute : RoleAuthorizationAttribute
+    {
+        public CustomerAndDealerAttribute() : base("Customer", "Dealer", "DealerManager", "DealerStaff") { }
     }
 }

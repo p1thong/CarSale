@@ -36,14 +36,33 @@
                             <div class="col-12">
                                 <label class="form-label">Customer *</label>
                                 <div class="input-group">
-                                    <select class="form-select" name="customerId" id="customerSelect" required>
-                                        <option value="">Select Customer...</option>
-                                        <!-- Customers will be loaded via AJAX -->
-                                    </select>
-                                    <button type="button" class="btn btn-outline-primary" onclick="loadCustomers()">
-                                        <i class="fas fa-refresh"></i>
-                                    </button>
+                                    @if (!string.IsNullOrEmpty(customerId?.ToString()))
+                                    {
+                                        <select class="form-select" name="customerId" id="customerSelect" required disabled>
+                                            <option value="">Loading customer...</option>
+                                        </select>
+                                        <input type="hidden" name="customerId" value="@customerId" />
+                                        <div class="input-group-text">
+                                            <i class="fas fa-lock text-muted" title="Customer is pre-selected"></i>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <select class="form-select" name="customerId" id="customerSelect" required>
+                                            <option value="">Select Customer...</option>
+                                            <!-- Customers will be loaded via AJAX -->
+                                        </select>
+                                        <button type="button" class="btn btn-outline-primary" onclick="loadCustomers()">
+                                            <i class="fas fa-refresh"></i>
+                                        </button>
+                                    }
                                 </div>
+                                @if (!string.IsNullOrEmpty(customerId?.ToString()))
+                                {
+                                    <div class="form-text text-info">
+                                        <i class="fas fa-info-circle"></i> Customer has been pre-selected from the previous page.
+                                    </div>
+                                }
                             </div>
                         </div>
 
@@ -70,6 +89,27 @@
                                 <select class="form-select" name="variantId" id="variantSelect" onchange="updatePrice()" required>
                                     <option value="">Select Variant...</option>
                                 </select>
+                                <div id="stockInfo" class="form-text text-muted" style="display: none;">
+                                    <i class="fas fa-warehouse"></i> <span id="stockText"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quantity Section -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">Quantity *</label>
+                                <input type="number" class="form-control" name="quantity" id="quantity" min="1" value="1" onchange="validateQuantity(); calculateFinalPrice()" required>
+                                <div class="invalid-feedback" id="quantityError">
+                                    Quantity exceeds available stock
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Available Stock</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-boxes"></i></span>
+                                    <input type="text" class="form-control bg-light" id="availableStock" readonly>
+                                </div>
                             </div>
                         </div>
 
@@ -181,23 +221,31 @@
         $(document).ready(function() {
             loadCustomers();
             loadManufacturers();
-            
-            @if(customerId != null)
-            {
-                <text>$('#customerSelect').val('@customerId').trigger('change');</text>
-            }
         });
 
         function loadCustomers() {
+            const preSelectedCustomerId = '@customerId'; // Get from ViewBag
+            
             $.ajax({
                 url: '@Url.Action("GetCustomersJson")',
                 type: 'GET',
                 success: function(data) {
                     let options = '<option value="">Select Customer...</option>';
                     data.forEach(customer => {
-                        options += `<option value="${customer.value}">${customer.text}</option>`;
+                        const selected = customer.value == preSelectedCustomerId ? 'selected' : '';
+                        options += `<option value="${customer.value}" ${selected}>${customer.text}</option>`;
                     });
                     $('#customerSelect').html(options);
+                    
+                    // If customer is pre-selected, show only that customer and disable the select
+                    if (preSelectedCustomerId && preSelectedCustomerId !== '') {
+                        const selectedCustomer = data.find(c => c.value == preSelectedCustomerId);
+                        if (selectedCustomer) {
+                            $('#customerSelect').html(`<option value="${selectedCustomer.value}" selected>${selectedCustomer.text}</option>`);
+                            $('#customerSelect').prop('disabled', true);
+                        }
+                        $('#customerSelect').trigger('change');
+                    }
                 },
                 error: function() {
                     $('#customerSelect').html('<option value="">Error loading customers</option>');
@@ -253,6 +301,8 @@
             const modelId = $('#modelSelect').val();
             if (!modelId) {
                 $('#variantSelect').html('<option value="">Select Variant...</option>');
+                $('#stockInfo').hide();
+                $('#availableStock').val('');
                 return;
             }
 
@@ -263,7 +313,10 @@
                 success: function(data) {
                     let options = '<option value="">Select Variant...</option>';
                     data.forEach(variant => {
-                        options += `<option value="${variant.value}" data-price="${variant.price}">${variant.text}</option>`;
+                        const stockStatus = variant.quantity === 0 ? ' (Out of Stock)' : 
+                                          variant.quantity <= 5 ? ` (Low Stock: ${variant.quantity})` : 
+                                          ` (Stock: ${variant.quantity})`;
+                        options += `<option value="${variant.value}" data-price="${variant.price}" data-quantity="${variant.quantity}">${variant.text}${stockStatus}</option>`;
                     });
                     $('#variantSelect').html(options);
                 },
@@ -276,14 +329,58 @@
         function updatePrice() {
             const selectedVariant = $('#variantSelect option:selected');
             const basePrice = selectedVariant.data('price') || 0;
+            const stock = selectedVariant.data('quantity') || 0;
+            
             $('#basePrice').val(basePrice.toLocaleString());
+            $('#availableStock').val(stock + ' units');
+            
+            // Show stock info
+            $('#stockInfo').show();
+            $('#stockText').text(`Stock available: ${stock} units`);
+            $('#stockText').removeClass('text-danger text-warning').addClass('text-success');
+            
+            if (stock === 0) {
+                $('#stockText').removeClass('text-success').addClass('text-danger');
+                $('#stockText').text('Out of stock');
+            } else if (stock <= 5) {
+                $('#stockText').removeClass('text-success').addClass('text-warning');
+                $('#stockText').text(`Low stock: ${stock} units remaining`);
+            }
+            
+            // Reset quantity if it exceeds stock
+            const currentQuantity = parseInt($('#quantity').val()) || 1;
+            if (currentQuantity > stock) {
+                $('#quantity').val(stock > 0 ? stock : 1);
+            }
+            
+            // Set max quantity
+            $('#quantity').attr('max', stock);
+            
             calculateFinalPrice();
             updateSummary();
+        }
+
+        function validateQuantity() {
+            const quantity = parseInt($('#quantity').val()) || 1;
+            const stock = parseInt($('#availableStock').val()) || 0;
+            const quantityInput = $('#quantity');
+            const errorDiv = $('#quantityError');
+            
+            if (quantity > stock) {
+                quantityInput.addClass('is-invalid');
+                errorDiv.show();
+                return false;
+            } else {
+                quantityInput.removeClass('is-invalid');
+                errorDiv.hide();
+                return true;
+            }
         }
 
         function calculateFinalPrice() {
             const basePrice = parseFloat($('#basePrice').val().replace(/,/g, '')) || 0;
             const discount = parseFloat($('#discount').val()) || 0;
+            const quantity = parseInt($('#quantity').val()) || 1;
             
             // Validate discount range
             if (discount < 0 || discount > 100) {
@@ -292,11 +389,18 @@
                 return;
             }
             
-            const discountAmount = basePrice * (discount / 100);
-            const finalPrice = basePrice - discountAmount;
+            // Validate quantity
+            if (!validateQuantity()) {
+                return;
+            }
             
-            $('#finalPrice').val(finalPrice);
-            $('#youSave').val(discountAmount.toLocaleString());
+            const discountAmount = basePrice * (discount / 100);
+            const unitPrice = basePrice - discountAmount;
+            const totalPrice = unitPrice * quantity;
+            const totalSavings = (basePrice * quantity) - totalPrice;
+            
+            $('#finalPrice').val(totalPrice);
+            $('#youSave').val(totalSavings.toLocaleString());
             updateSummary();
         }
 
@@ -307,6 +411,8 @@
             const discount = $('#discount').val();
             const finalPrice = $('#finalPrice').val();
             const youSave = $('#youSave').val();
+            const quantity = $('#quantity').val() || 1;
+            const unitPrice = parseFloat(finalPrice) / quantity;
 
             if (finalPrice && finalPrice > 0) {
                 $('#quotationSummary').html(`
@@ -320,8 +426,12 @@
                     </div>
                     <hr>
                     <div class="row mb-2">
-                        <div class="col">Base Price:</div>
+                        <div class="col">Unit Price:</div>
                         <div class="col text-end">$${basePrice}</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col">Quantity:</div>
+                        <div class="col text-end">${quantity} units</div>
                     </div>
                     <div class="row mb-2">
                         <div class="col">Discount (${discount}%):</div>
@@ -329,7 +439,7 @@
                     </div>
                     <hr>
                     <div class="row">
-                        <div class="col"><strong>Final Price:</strong></div>
+                        <div class="col"><strong>Total Price:</strong></div>
                         <div class="col text-end"><strong class="text-success">$${parseFloat(finalPrice).toLocaleString()}</strong></div>
                     </div>
                 `);
@@ -372,5 +482,40 @@
                 `);
             }
         }
+
+        // Form validation before submit
+        $('#quotationForm').on('submit', function(e) {
+            // Validate quantity doesn't exceed stock
+            if (!validateQuantity()) {
+                e.preventDefault();
+                alert('Please check the quantity. It exceeds available stock.');
+                return false;
+            }
+
+            // Validate all required fields
+            const customerId = $('#customerSelect').val();
+            const variantId = $('#variantSelect').val();
+            const finalPrice = $('#finalPrice').val();
+
+            if (!customerId) {
+                e.preventDefault();
+                alert('Please select a customer.');
+                return false;
+            }
+
+            if (!variantId) {
+                e.preventDefault();
+                alert('Please select a vehicle variant.');
+                return false;
+            }
+
+            if (!finalPrice || finalPrice <= 0) {
+                e.preventDefault();
+                alert('Please ensure the price is calculated correctly.');
+                return false;
+            }
+
+            return true;
+        });
     </script>
 }

@@ -213,20 +213,23 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="d-grid gap-2">
-                                        @if (Model.Status == "Scheduled")
+                                        @* Chỉ Dealer mới được xác nhận lịch hẹn *@
+                                        @if (Model.Status == "Scheduled" && (ViewBag.UserRole == "Dealer" || ViewBag.UserRole == "DealerManager" || ViewBag.UserRole == "DealerStaff"))
                                         {
                                             <button type="button" class="btn btn-info btn-lg" onclick="confirmTestDrive(@Model.TestDriveId)">
                                                 <i class="fas fa-check"></i> Xác nhận lịch hẹn
                                             </button>
                                         }
                                         
-                                        @if (Model.Status == "Confirmed")
+                                        @* Chỉ Dealer mới được hoàn thành lái thử *@
+                                        @if (Model.Status == "Confirmed" && (ViewBag.UserRole == "Dealer" || ViewBag.UserRole == "DealerManager" || ViewBag.UserRole == "DealerStaff"))
                                         {
                                             <button type="button" class="btn btn-success btn-lg" onclick="completeTestDrive(@Model.TestDriveId)">
                                                 <i class="fas fa-flag-checkered"></i> Hoàn thành lái thử
                                             </button>
                                         }
 
+                                        @* Customer và Dealer đều có thể hủy lịch hẹn (nếu chưa hoàn thành hoặc đã hủy) *@
                                         @if (Model.Status != "Completed" && Model.Status != "Cancelled")
                                         {
                                             <button type="button" class="btn btn-danger btn-lg" onclick="cancelTestDrive(@Model.TestDriveId)">

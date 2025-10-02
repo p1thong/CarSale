@@ -1,0 +1,242 @@
+@model ASM1.Repository.Models.Feedback
+
+@{
+    ViewData["Title"] = "Gửi phản hồi lái thử";
+    var testDrive = ViewBag.TestDrive as ASM1.Repository.Models.TestDrive;
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-star"></i> Gửi phản hồi về trải nghiệm lái thử
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <!-- Test Drive Information -->
+                    @if (testDrive != null)
+                    {
+                        <div class="alert alert-info">
+                            <h5><i class="fas fa-info-circle"></i> Thông tin lịch lái thử</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Mã lịch hẹn:</strong> #@testDrive.TestDriveId<br>
+                                    <strong>Xe:</strong> @testDrive.Variant.VehicleModel.Name @testDrive.Variant.Version<br>
+                                    <strong>Màu sắc:</strong> @testDrive.Variant.Color
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Ngày lái thử:</strong> @testDrive.ScheduledDate?.ToString("dd/MM/yyyy")<br>
+                                    <strong>Giờ:</strong> @testDrive.ScheduledTime?.ToString("HH:mm")<br>
+                                    <strong>Trạng thái:</strong> <span class="badge bg-success">Đã hoàn thành</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Feedback Form -->
+                    <form asp-action="SubmitFeedback" method="post" onsubmit="return validateForm();">
+                        <input type="hidden" name="testDriveId" value="@testDrive?.TestDriveId" />
+                        <input type="hidden" asp-for="CustomerId" />
+                        <input type="hidden" asp-for="FeedbackDate" value="@DateTime.Now" />
+                        <input type="hidden" asp-for="CreatedAt" value="@DateTime.Now" />
+                        
+                        <!-- Rating Section -->
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-star text-warning"></i> 
+                                <strong>Đánh giá tổng thể (1-5 sao) <span class="text-danger">*</span></strong>
+                            </label>
+                            <div class="rating-container">
+                                <div class="rating-stars" id="ratingStars">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        <i class="fas fa-star star" data-rating="@i" onclick="setRating(@i)"></i>
+                                    }
+                                </div>
+                                <input type="hidden" asp-for="Rating" id="ratingInput" value="@(Model?.Rating ?? 0)" />
+                                <span asp-validation-for="Rating" class="text-danger"></span>
+                                <div class="rating-text mt-2">
+                                    <span id="ratingText">Vui lòng chọn số sao đánh giá</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Content Section -->
+                        <div class="mb-4">
+                            <label asp-for="Content" class="form-label">
+                                <i class="fas fa-comment"></i> 
+                                <strong>Chia sẻ trải nghiệm của bạn <span class="text-danger">*</span></strong>
+                            </label>
+                            <textarea asp-for="Content" 
+                                    class="form-control" 
+                                    rows="6" 
+                                    placeholder="Hãy chia sẻ chi tiết về trải nghiệm lái thử của bạn: cảm nhận về xe, dịch vụ, nhân viên hỗ trợ, v.v..."
+                                    maxlength="1000"></textarea>
+                            <span asp-validation-for="Content" class="text-danger"></span>
+                            <div class="form-text">Tối đa 1000 ký tự</div>
+                        </div>
+
+                        <!-- Feedback Guidelines -->
+                        <div class="alert alert-light">
+                            <h6><i class="fas fa-lightbulb"></i> Gợi ý nội dung phản hồi:</h6>
+                            <ul class="mb-0">
+                                <li>Cảm nhận về hiệu suất và tính năng của xe</li>
+                                <li>Chất lượng dịch vụ và sự hỗ trợ của nhân viên</li>
+                                <li>Điều gì bạn thích nhất trong quá trình lái thử?</li>
+                                <li>Có điều gì cần cải thiện không?</li>
+                                <li>Bạn có muốn giới thiệu dịch vụ cho bạn bè không?</li>
+                            </ul>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="@Url.Action("MyTestDrives")" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Quay lại
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i> Gửi phản hồi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    
+    <style>
+        .rating-container {
+            text-align: center;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .rating-stars {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .star {
+            color: #ddd;
+            cursor: pointer;
+            margin: 0 5px;
+            transition: color 0.2s ease;
+        }
+        
+        .star:hover,
+        .star.active {
+            color: #ffc107;
+        }
+        
+        .rating-text {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #6c757d;
+        }
+        
+        .rating-text.selected {
+            color: #007bff;
+        }
+    </style>
+
+    <script>
+        let currentRating = @(Model?.Rating ?? 0);
+        
+        // Initialize rating display
+        document.addEventListener('DOMContentLoaded', function() {
+            if (currentRating > 0) {
+                setRating(currentRating);
+            }
+        });
+        
+        function setRating(rating) {
+            currentRating = rating;
+            document.getElementById('ratingInput').value = rating;
+            
+            // Update star display
+            const stars = document.querySelectorAll('.star');
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+            
+            // Update rating text
+            const ratingTexts = [
+                '',
+                'Rất không hài lòng',
+                'Không hài lòng', 
+                'Bình thường',
+                'Hài lòng',
+                'Rất hài lòng'
+            ];
+            
+            const ratingTextElement = document.getElementById('ratingText');
+            ratingTextElement.textContent = ratingTexts[rating] || 'Vui lòng chọn số sao đánh giá';
+            ratingTextElement.classList.toggle('selected', rating > 0);
+        }
+        
+        // Add hover effects
+        document.querySelectorAll('.star').forEach((star, index) => {
+            star.addEventListener('mouseenter', function() {
+                const rating = index + 1;
+                const stars = document.querySelectorAll('.star');
+                stars.forEach((s, i) => {
+                    if (i < rating) {
+                        s.style.color = '#ffc107';
+                    } else {
+                        s.style.color = '#ddd';
+                    }
+                });
+            });
+            
+            star.addEventListener('mouseleave', function() {
+                // Restore current rating display
+                setRating(currentRating);
+            });
+        });
+        
+        // Validate form before submission
+        function validateForm() {
+            console.log('Form validation started');
+            
+            const rating = document.getElementById('ratingInput').value;
+            const content = document.querySelector('textarea[name="Content"]').value;
+            const testDriveId = document.querySelector('input[name="testDriveId"]').value;
+            
+            console.log('Rating:', rating, 'Content:', content, 'TestDriveId:', testDriveId);
+            
+            if (!rating || rating < 1 || rating > 5) {
+                alert('Vui lòng chọn đánh giá từ 1 đến 5 sao!');
+                return false;
+            }
+            
+            if (!content || content.trim() === '') {
+                alert('Vui lòng nhập nội dung phản hồi!');
+                return false;
+            }
+            
+            if (!testDriveId) {
+                alert('Lỗi: Không tìm thấy thông tin lịch lái thử!');
+                return false;
+            }
+            
+            console.log('Form validation passed, submitting...');
+            console.log('Form data being submitted:', {
+                rating: rating,
+                content: content,
+                testDriveId: testDriveId
+            });
+            
+            return true;
+        }
+    </script>
+}

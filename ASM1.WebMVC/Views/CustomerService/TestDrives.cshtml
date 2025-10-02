@@ -87,27 +87,42 @@
                                             </td>
                                             <td>
                                                 <div class="btn-group" role="group">
-                                                    @if (testDrive.Status == "Scheduled")
+                                                    @* Dealer Staff Only - Xác nhận và hoàn thành lịch lái thử *@
+                                                    @if (ViewBag.UserRole == "DealerManager" || ViewBag.UserRole == "DealerStaff" || ViewBag.UserRole == "Dealer")
                                                     {
-                                                        <button type="button" class="btn btn-sm btn-success" 
-                                                                onclick="confirmTestDrive(@testDrive.TestDriveId)" data-bs-toggle="tooltip" title="Xác nhận lịch lái thử">
-                                                            <i class="fas fa-check me-1"></i> Xác nhận
-                                                        </button>
+                                                        @if (testDrive.Status == "Scheduled")
+                                                        {
+                                                            <button type="button" class="btn btn-sm btn-success" 
+                                                                    onclick="confirmTestDrive(@testDrive.TestDriveId)" data-bs-toggle="tooltip" title="Xác nhận lịch lái thử">
+                                                                <i class="fas fa-check me-1"></i> Xác nhận
+                                                            </button>
+                                                        }
+                                                        
+                                                        @if (testDrive.Status == "Confirmed")
+                                                        {
+                                                            <button type="button" class="btn btn-sm btn-primary" 
+                                                                    onclick="completeTestDrive(@testDrive.TestDriveId)" data-bs-toggle="tooltip" title="Hoàn thành lịch lái thử">
+                                                                <i class="fas fa-flag-checkered me-1"></i> Hoàn thành
+                                                            </button>
+                                                        }
                                                     }
                                                     
-                                                    @if (testDrive.Status == "Confirmed")
+                                                    @* Customer Only - Gửi phản hồi sau khi hoàn thành *@
+                                                    @if (ViewBag.UserRole == "Customer" && testDrive.Status == "Completed")
                                                     {
-                                                        <button type="button" class="btn btn-sm btn-primary" 
-                                                                onclick="completeTestDrive(@testDrive.TestDriveId)" data-bs-toggle="tooltip" title="Hoàn thành lịch lái thử">
-                                                            <i class="fas fa-flag-checkered me-1"></i> Hoàn thành
-                                                        </button>
+                                                        <a href="@Url.Action("CreateFeedback", new { customerId = testDrive.CustomerId, testDriveId = testDrive.TestDriveId })" 
+                                                           class="btn btn-sm btn-success" data-bs-toggle="tooltip" title="Gửi phản hồi về trải nghiệm lái thử">
+                                                            <i class="fas fa-star me-1"></i> Phản hồi
+                                                        </a>
                                                     }
                                                     
+                                                    @* Both roles can schedule new test drives *@
                                                     <a href="@Url.Action("ScheduleTestDrive", new { customerId = testDrive.CustomerId })" 
                                                        class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Đặt lại lịch lái thử">
                                                         <i class="fas fa-calendar-alt me-1"></i> Đặt lại
                                                     </a>
                                                     
+                                                    @* Both roles can view details *@
                                                     <a href="@Url.Action("TestDriveDetails", new { id = testDrive.TestDriveId })" 
                                                        class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Xem chi tiết">
                                                         <i class="fas fa-info-circle"></i>

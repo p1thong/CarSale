@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 namespace ASM1.WebMVC.Controllers
 {
     [DealerOnly]
-    public class DealerController : Controller
+    public class DealerController : BaseController
     {
         private readonly ICustomerRelationshipService _customerService;
         private readonly ISalesService _salesService;
