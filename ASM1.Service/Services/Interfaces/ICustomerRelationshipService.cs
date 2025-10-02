@@ -14,6 +14,7 @@ namespace ASM1.Service.Services.Interfaces
         Task<TestDrive> ScheduleTestDriveAsync(int customerId, int variantId, DateOnly scheduledDate);
         Task<TestDrive> ConfirmTestDriveAsync(int testDriveId);
         Task<TestDrive> CompleteTestDriveAsync(int testDriveId);
+        Task<TestDrive?> GetTestDriveByIdAsync(int testDriveId);
         Task<IEnumerable<TestDrive>> GetTestDriveScheduleAsync(DateOnly date);
         Task<IEnumerable<TestDrive>> GetAllTestDrivesAsync();
         Task<IEnumerable<TestDrive>> GetCustomerTestDrivesAsync(int customerId);

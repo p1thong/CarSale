@@ -1,0 +1,297 @@
+@model ASM1.Repository.Models.TestDrive
+@{
+    ViewData["Title"] = "Chi tiết lịch lái thử";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-12 mb-3">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="@Url.Action("Index", "Home")">
+                            <i class="fas fa-home"></i> Trang chủ
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="@Url.Action("TestDrives", "CustomerService")">
+                            <i class="fas fa-calendar"></i> Lịch lái thử
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">Chi tiết lịch lái thử #@Model.TestDriveId</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="card-title mb-0">
+                        <i class="fas fa-car"></i> Chi tiết lịch lái thử #@Model.TestDriveId
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Test Drive Information -->
+                        <div class="col-lg-6">
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-calendar-alt"></i> Thông tin lịch hẹn
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row mb-3">
+                                        <div class="col-sm-4"><strong>Mã lịch hẹn:</strong></div>
+                                        <div class="col-sm-8">
+                                            <span class="badge bg-primary fs-6">#@Model.TestDriveId</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-sm-4"><strong>Ngày lái thử:</strong></div>
+                                        <div class="col-sm-8">
+                                            <i class="fas fa-calendar"></i> @(Model.ScheduledDate?.ToString("dd/MM/yyyy") ?? "Chưa xác định")
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <div class="col-sm-4"><strong>Trạng thái:</strong></div>
+                                        <div class="col-sm-8">
+                                            @{
+                                                var statusClass = Model.Status switch
+                                                {
+                                                    "Scheduled" => "bg-warning",
+                                                    "Confirmed" => "bg-info",
+                                                    "Completed" => "bg-success",
+                                                    "Cancelled" => "bg-danger",
+                                                    _ => "bg-secondary"
+                                                };
+                                                var statusText = Model.Status switch
+                                                {
+                                                    "Scheduled" => "Đã đặt lịch",
+                                                    "Confirmed" => "Đã xác nhận",
+                                                    "Completed" => "Hoàn thành",
+                                                    "Cancelled" => "Đã hủy",
+                                                    _ => Model.Status
+                                                };
+                                            }
+                                            <span class="badge @statusClass fs-6">@statusText</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Customer Information -->
+                            @if (Model.Customer != null)
+                            {
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">
+                                            <i class="fas fa-user"></i> Thông tin khách hàng
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row mb-3">
+                                            <div class="col-sm-4"><strong>Họ tên:</strong></div>
+                                            <div class="col-sm-8">@Model.Customer.FullName</div>
+                                        </div>
+                                        
+                                        <div class="row mb-3">
+                                            <div class="col-sm-4"><strong>Email:</strong></div>
+                                            <div class="col-sm-8">
+                                                <a href="mailto:@Model.Customer.Email">@Model.Customer.Email</a>
+                                            </div>
+                                        </div>
+
+                                        @if (!string.IsNullOrEmpty(Model.Customer.Phone))
+                                        {
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>Số điện thoại:</strong></div>
+                                                <div class="col-sm-8">
+                                                    <a href="tel:@Model.Customer.Phone">@Model.Customer.Phone</a>
+                                                </div>
+                                            </div>
+                                        }
+
+                                        @if (Model.Customer.Birthday.HasValue)
+                                        {
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>Ngày sinh:</strong></div>
+                                                <div class="col-sm-8">@Model.Customer.Birthday.Value.ToString("dd/MM/yyyy")</div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Vehicle Information -->
+                        <div class="col-lg-6">
+                            @if (Model.Variant != null)
+                            {
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">
+                                            <i class="fas fa-car"></i> Thông tin xe lái thử
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <!-- Vehicle Image -->
+                                        @if (!string.IsNullOrEmpty(Model.Variant.VehicleModel?.ImageUrl))
+                                        {
+                                            <div class="text-center mb-3">
+                                                <img src="@Model.Variant.VehicleModel.ImageUrl" 
+                                                     alt="@Model.Variant.VehicleModel?.Name" 
+                                                     class="img-fluid rounded" 
+                                                     style="max-height: 200px; object-fit: cover;">
+                                            </div>
+                                        }
+
+                                        <div class="row mb-3">
+                                            <div class="col-sm-4"><strong>Tên xe:</strong></div>
+                                            <div class="col-sm-8">@Model.Variant.VehicleModel?.Name</div>
+                                        </div>
+
+                                        <div class="row mb-3">
+                                            <div class="col-sm-4"><strong>Phiên bản:</strong></div>
+                                            <div class="col-sm-8">@Model.Variant.Version</div>
+                                        </div>
+
+                                        <div class="row mb-3">
+                                            <div class="col-sm-4"><strong>Màu sắc:</strong></div>
+                                            <div class="col-sm-8">
+                                                <span class="badge bg-success">@Model.Variant.Color</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="row mb-3">
+                                            <div class="col-sm-4"><strong>Năm sản xuất:</strong></div>
+                                            <div class="col-sm-8">@Model.Variant.ProductYear</div>
+                                        </div>
+
+                                        @if (Model.Variant.VehicleModel?.Manufacturer != null)
+                                        {
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>Hãng sản xuất:</strong></div>
+                                                <div class="col-sm-8">
+                                                    <span class="badge bg-info">@Model.Variant.VehicleModel.Manufacturer.Name</span>
+                                                </div>
+                                            </div>
+                                        }
+
+                                        @if (Model.Variant.Price.HasValue)
+                                        {
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>Giá bán:</strong></div>
+                                                <div class="col-sm-8">
+                                                    <span class="text-success fw-bold">
+                                                        @string.Format("{0:N0}", Model.Variant.Price) VND
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- Action Buttons -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-cogs"></i> Thao tác
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-grid gap-2">
+                                        @if (Model.Status == "Scheduled")
+                                        {
+                                            <button type="button" class="btn btn-info btn-lg" onclick="confirmTestDrive(@Model.TestDriveId)">
+                                                <i class="fas fa-check"></i> Xác nhận lịch hẹn
+                                            </button>
+                                        }
+                                        
+                                        @if (Model.Status == "Confirmed")
+                                        {
+                                            <button type="button" class="btn btn-success btn-lg" onclick="completeTestDrive(@Model.TestDriveId)">
+                                                <i class="fas fa-flag-checkered"></i> Hoàn thành lái thử
+                                            </button>
+                                        }
+
+                                        @if (Model.Status != "Completed" && Model.Status != "Cancelled")
+                                        {
+                                            <button type="button" class="btn btn-danger btn-lg" onclick="cancelTestDrive(@Model.TestDriveId)">
+                                                <i class="fas fa-times"></i> Hủy lịch hẹn
+                                            </button>
+                                        }
+
+                                        <a href="@Url.Action("TestDrives", "CustomerService")" class="btn btn-outline-secondary btn-lg">
+                                            <i class="fas fa-arrow-left"></i> Quay lại danh sách
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function confirmTestDrive(testDriveId) {
+            if (confirm('Bạn có chắc chắn muốn xác nhận lịch lái thử này?')) {
+                $.post('@Url.Action("ConfirmTestDrive", "CustomerService")', { testDriveId: testDriveId })
+                    .done(function(data) {
+                        if (data.success) {
+                            toastr.success(data.message);
+                            location.reload();
+                        } else {
+                            toastr.error(data.message);
+                        }
+                    })
+                    .fail(function() {
+                        toastr.error('Có lỗi xảy ra. Vui lòng thử lại.');
+                    });
+            }
+        }
+
+        function completeTestDrive(testDriveId) {
+            if (confirm('Bạn có chắc chắn muốn đánh dấu lái thử này là hoàn thành?')) {
+                $.post('@Url.Action("CompleteTestDrive", "CustomerService")', { testDriveId: testDriveId })
+                    .done(function(data) {
+                        if (data.success) {
+                            toastr.success(data.message);
+                            location.reload();
+                        } else {
+                            toastr.error(data.message);
+                        }
+                    })
+                    .fail(function() {
+                        toastr.error('Có lỗi xảy ra. Vui lòng thử lại.');
+                    });
+            }
+        }
+
+        function cancelTestDrive(testDriveId) {
+            if (confirm('Bạn có chắc chắn muốn hủy lịch lái thử này?')) {
+                $.post('@Url.Action("CancelTestDrive", "CustomerService")', { testDriveId: testDriveId })
+                    .done(function(data) {
+                        if (data.success) {
+                            toastr.success(data.message);
+                            location.reload();
+                        } else {
+                            toastr.error(data.message);
+                        }
+                    })
+                    .fail(function() {
+                        toastr.error('Có lỗi xảy ra. Vui lòng thử lại.');
+                    });
+            }
+        }
+    </script>
+}
