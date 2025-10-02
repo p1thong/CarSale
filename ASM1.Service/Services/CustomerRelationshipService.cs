@@ -115,6 +115,11 @@ namespace ASM1.Service.Services
             return await _testDriveRepository.GetAllTestDrivesAsync();
         }
 
+        public async Task<TestDrive?> GetTestDriveByIdAsync(int testDriveId)
+        {
+            return await _testDriveRepository.GetTestDriveByIdAsync(testDriveId);
+        }
+
         public async Task<IEnumerable<TestDrive>> GetCustomerTestDrivesAsync(int customerId)
         {
             return await _testDriveRepository.GetTestDrivesByCustomerAsync(customerId);

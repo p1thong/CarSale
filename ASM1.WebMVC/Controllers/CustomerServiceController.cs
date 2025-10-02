@@ -365,6 +365,42 @@ namespace ASM1.WebMVC.Controllers
             }
         }
 
+        public async Task<IActionResult> TestDriveDetails(int id)
+        {
+            try
+            {
+                // Cần thêm method GetTestDriveByIdAsync vào service
+                var testDrive = await _customerService.GetTestDriveByIdAsync(id);
+                
+                if (testDrive == null)
+                {
+                    TempData["Error"] = "Không tìm thấy thông tin lịch lái thử.";
+                    return RedirectToAction(nameof(TestDrives));
+                }
+
+                return View(testDrive);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Lỗi khi tải thông tin lịch lái thử: {ex.Message}";
+                return RedirectToAction(nameof(TestDrives));
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CancelTestDrive(int testDriveId)
+        {
+            try
+            {
+                await _customerService.UpdateTestDriveStatusAsync(testDriveId, "Cancelled");
+                return Json(new { success = true, message = "Lịch lái thử đã được hủy thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
         private int GetCurrentDealerId()
         {
             // Implementation to get current dealer ID from session/claims
