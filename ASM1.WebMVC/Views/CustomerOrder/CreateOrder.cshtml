@@ -1,0 +1,198 @@
+@{
+    ViewData["Title"] = "Đặt hàng xe";
+    var variant = ViewBag.Variant as VehicleVariant;
+    var customer = ViewBag.Customer as Customer;
+    var maxQuantity = (int)ViewBag.MaxQuantity;
+}
+
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="d-flex align-items-center mb-4">
+        <a href="@Url.Action("VehicleDetail", "Home", new { id = variant?.VariantId })" class="btn btn-outline-secondary me-3">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <h2 class="mb-0">
+            <i class="fas fa-shopping-cart text-success me-2"></i>
+            Đặt hàng xe
+        </h2>
+    </div>
+
+    <div class="row">
+        <!-- Thông tin xe -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-car me-2"></i>
+                        Thông tin xe được chọn
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (variant != null)
+                    {
+                        <div class="row">
+                            <div class="col-md-6">
+                                @if (!string.IsNullOrEmpty(variant.VehicleModel?.ImageUrl))
+                                {
+                                    <img src="@variant.VehicleModel.ImageUrl" alt="@variant.VehicleModel.ModelName" 
+                                         class="img-fluid rounded" style="height: 200px; object-fit: cover;">
+                                }
+                                else
+                                {
+                                    <div class="bg-light d-flex align-items-center justify-content-center rounded" style="height: 200px;">
+                                        <i class="fas fa-car fa-3x text-muted"></i>
+                                    </div>
+                                }
+                            </div>
+                            <div class="col-md-6">
+                                <h5 class="text-primary">@variant.VehicleModel?.ModelName</h5>
+                                <p class="text-muted mb-2">@variant.VehicleModel?.Manufacturer?.Name</p>
+                                
+                                <div class="mb-2">
+                                    <strong>Phiên bản:</strong> @variant.Version
+                                </div>
+                                <div class="mb-2">
+                                    <strong>Màu sắc:</strong> @variant.Color
+                                </div>
+                                <div class="mb-2">
+                                    <strong>Giá:</strong>
+                                    <span class="text-success fw-bold">
+                                        @(variant.Price?.ToString("C0", new System.Globalization.CultureInfo("en-US")))
+                                    </span>
+                                </div>
+                                <div class="mb-2">
+                                    <strong>Số lượng có sẵn:</strong> 
+                                    <span class="badge bg-info">@variant.Quantity xe</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Form đặt hàng -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>
+                        Thông tin đặt hàng
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="@Url.Action("CreateOrder", "CustomerOrder")">
+                        <input type="hidden" name="variantId" value="@variant?.VariantId" />
+                        
+                        <!-- Thông tin khách hàng -->
+                        <div class="mb-4">
+                            <h6 class="text-muted mb-3">
+                                <i class="fas fa-user me-2"></i>
+                                Thông tin khách hàng
+                            </h6>
+                            @if (customer != null)
+                            {
+                                <div class="row">
+                                    <div class="col-6">
+                                        <strong>Họ tên:</strong><br>
+                                        <span>@customer.FullName</span>
+                                    </div>
+                                    <div class="col-6">
+                                        <strong>Email:</strong><br>
+                                        <span>@customer.Email</span>
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-6">
+                                        <strong>Điện thoại:</strong><br>
+                                        <span>@customer.Phone</span>
+                                    </div>
+                                    <div class="col-6">
+                                        <strong>Dealer:</strong><br>
+                                        <span>@customer.Dealer?.FullName</span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <hr>
+
+                        <!-- Chọn số lượng -->
+                        <div class="mb-4">
+                            <label for="quantity" class="form-label">
+                                <i class="fas fa-calculator me-2"></i>
+                                Số lượng xe muốn đặt <span class="text-danger">*</span>
+                            </label>
+                            <input type="number" 
+                                   class="form-control" 
+                                   id="quantity" 
+                                   name="quantity" 
+                                   min="1" 
+                                   max="@maxQuantity" 
+                                   value="1" 
+                                   required
+                                   onchange="updateTotal()">
+                            <div class="form-text">
+                                Tối đa @maxQuantity xe có sẵn
+                            </div>
+                        </div>
+
+                        <!-- Tổng tiền -->
+                        <div class="mb-4">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="fw-bold">Tổng tiền:</span>
+                                        <span class="text-success fw-bold">
+                                            @(variant.Price?.ToString("C0", new System.Globalization.CultureInfo("en-US")))
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Ghi chú -->
+                        <div class="mb-4">
+                            <label for="notes" class="form-label">
+                                <i class="fas fa-comment me-2"></i>
+                                Ghi chú (tùy chọn)
+                            </label>
+                            <textarea class="form-control" 
+                                      id="notes" 
+                                      name="notes" 
+                                      rows="3" 
+                                      placeholder="Nhập ghi chú về đơn hàng (nếu có)..."></textarea>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-check me-2"></i>
+                                Xác nhận đặt hàng
+                            </button>
+                            <a href="@Url.Action("VehicleDetail", "Home", new { id = variant?.VariantId })" 
+                               class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>
+                                Hủy bỏ
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateTotal() {
+    const quantity = document.getElementById('quantity').value;
+    const unitPrice = @(variant?.Price ?? 0);
+    const total = quantity * unitPrice;
+    
+    document.getElementById('totalAmount').textContent = 
+        new Intl.NumberFormat('vi-VN', { 
+            style: 'currency', 
+            currency: 'VND' 
+        }).format(total);
+}
+</script>

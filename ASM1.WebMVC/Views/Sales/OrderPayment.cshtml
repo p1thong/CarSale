@@ -1,0 +1,187 @@
+@{
+    ViewData["Title"] = "Thanh toán hóa đơn";
+    var order = ViewBag.Order as ASM1.Repository.Models.Order;
+    var payments = ViewBag.Payments as IEnumerable<ASM1.Repository.Models.Payment>;
+    var totalPaid = (decimal)ViewBag.TotalPaid;
+    var orderTotal = (decimal)ViewBag.OrderTotal;
+    var remainingBalance = (decimal)ViewBag.RemainingBalance;
+    var isFullyPaid = (bool)ViewBag.IsFullyPaid;
+}
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            
+            <!-- Order Summary -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-receipt"></i> Hóa đơn #@order?.OrderId - @order?.Status
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Thông tin khách hàng:</h6>
+                            <p class="mb-1"><strong>Tên:</strong> @order?.Customer?.FullName</p>
+                            <p class="mb-1"><strong>Email:</strong> @order?.Customer?.Email</p>
+                            <p class="mb-1"><strong>SĐT:</strong> @order?.Customer?.Phone</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-success">Thông tin xe:</h6>
+                            <p class="mb-1"><strong>Xe:</strong> @order?.Variant?.VehicleModel?.Name</p>
+                            <p class="mb-1"><strong>Phiên bản:</strong> @order?.Variant?.Version (@order?.Variant?.Color)</p>
+                            <p class="mb-1"><strong>Giá:</strong> @((order?.Variant?.Price ?? 0).ToString("C", new System.Globalization.CultureInfo("vi-VN")))</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Payment Summary -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="p-3 bg-light rounded">
+                                <div class="row text-center">
+                                    <div class="col-md-3">
+                                        <h6 class="text-info">Tổng hóa đơn</h6>
+                                        <h4 class="text-primary">@orderTotal.ToString("C", new System.Globalization.CultureInfo("vi-VN"))</h4>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <h6 class="text-success">Đã thanh toán</h6>
+                                        <h4 class="text-success">@totalPaid.ToString("C", new System.Globalization.CultureInfo("vi-VN"))</h4>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <h6 class="@(remainingBalance > 0 ? "text-warning" : "text-success")">Còn lại</h6>
+                                        <h4 class="@(remainingBalance > 0 ? "text-warning" : "text-success")">
+                                            @remainingBalance.ToString("C", new System.Globalization.CultureInfo("vi-VN"))
+                                        </h4>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <h6>Trạng thái</h6>
+                                        @if (isFullyPaid)
+                                        {
+                                            <span class="badge bg-success fs-6">ĐÃ THANH TOÁN</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning fs-6">CHƯA ĐỦ</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Payment Form -->
+                @if (!isFullyPaid)
+                {
+                    <div class="col-lg-6">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-success text-white">
+                                <h6 class="mb-0"><i class="fas fa-credit-card"></i> Thanh toán</h6>
+                            </div>
+                            <div class="card-body">
+                                <form asp-action="ProcessPaymentDirect" method="post">
+                                    <input type="hidden" name="orderId" value="@order?.OrderId" />
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label">Số tiền thanh toán <span class="text-danger">*</span></label>
+                                        <input type="number" name="amount" step="0.01" min="0" max="@remainingBalance" 
+                                               value="@remainingBalance" class="form-control" required />
+                                        <div class="form-text">Tối đa: @remainingBalance.ToString("C", new System.Globalization.CultureInfo("vi-VN"))</div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label">Phương thức thanh toán</label>
+                                        <select name="paymentMethod" class="form-select">
+                                            <option value="Cash">Tiền mặt</option>
+                                            <option value="BankTransfer">Chuyển khoản</option>
+                                            <option value="CreditCard">Thẻ tín dụng</option>
+                                            <option value="DebitCard">Thẻ ghi nợ</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <button type="submit" class="btn btn-success w-100">
+                                        <i class="fas fa-money-bill"></i> Thanh toán
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <!-- Payment History -->
+                <div class="@(isFullyPaid ? "col-lg-8" : "col-lg-6")">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-info text-white">
+                            <h6 class="mb-0"><i class="fas fa-history"></i> Lịch sử thanh toán</h6>
+                        </div>
+                        <div class="card-body">
+                            @if (payments?.Any() == true)
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Ngày giờ</th>
+                                                <th>Số tiền</th>
+                                                <th>Phương thức</th>
+                                                <th>Trạng thái</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var payment in payments.OrderByDescending(p => p.PaymentDate))
+                                            {
+                                                <tr>
+                                                    <td>@payment.PaymentDate?.ToString("dd/MM/yyyy HH:mm")</td>
+                                                    <td class="text-success fw-bold">@((payment.Amount ?? 0).ToString("C", new System.Globalization.CultureInfo("vi-VN")))</td>
+                                                    <td>@payment.PaymentMethod</td>
+                                                    <td>
+                                                        <span class="badge bg-success">@payment.Status</span>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center text-muted py-3">
+                                    <i class="fas fa-info-circle"></i> Chưa có thanh toán nào
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="text-center mt-4">
+                <a asp-action="Orders" class="btn btn-outline-secondary me-2">
+                    <i class="fas fa-arrow-left"></i> Quay lại danh sách
+                </a>
+                
+                @if (isFullyPaid && order?.Status != "Completed")
+                {
+                    <form asp-action="CompleteOrderDirect" method="post" style="display: inline;">
+                        <input type="hidden" name="orderId" value="@order?.OrderId" />
+                        <button type="submit" class="btn btn-primary" 
+                                onclick="return confirm('Hoàn thành hóa đơn này?')">
+                            <i class="fas fa-check-circle"></i> Hoàn thành hóa đơn
+                        </button>
+                    </form>
+                }
+                
+                @if (!isFullyPaid)
+                {
+                    <span class="text-muted">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        Cần thanh toán đủ để hoàn thành hóa đơn
+                    </span>
+                }
+            </div>
+        </div>
+    </div>
+</div>

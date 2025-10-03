@@ -38,12 +38,10 @@ namespace ASM1.WebMVC.Controllers
                 
                 // Load dashboard statistics
                 var customers = await _customerService.GetCustomersByDealerAsync(dealerId);
-                var quotations = await _salesService.GetQuotationsByDealerAsync(dealerId);
                 var orders = await _salesService.GetOrdersByDealerAsync(dealerId);
                 
                 ViewBag.TotalCustomers = customers.Count();
                 ViewBag.TotalTestDrives = 0; // TODO: Add method to count test drives
-                ViewBag.TotalQuotations = quotations.Count();
                 ViewBag.ActiveOrders = orders.Count(o => o.Status == "Pending" || o.Status == "Processing");
                 
                 return View();
@@ -52,7 +50,6 @@ namespace ASM1.WebMVC.Controllers
             {
                 ViewBag.TotalCustomers = 0;
                 ViewBag.TotalTestDrives = 0;
-                ViewBag.TotalQuotations = 0;
                 ViewBag.ActiveOrders = 0;
                 TempData["Error"] = "Error loading dashboard data.";
                 return View();
@@ -143,84 +140,6 @@ namespace ASM1.WebMVC.Controllers
 
         #endregion
 
-        #region Quotation Management
-
-        public async Task<IActionResult> Quotations()
-        {
-            var dealerId = GetCurrentDealerId();
-            var quotations = await _salesService.GetQuotationsByDealerAsync(dealerId);
-            return View(quotations);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> CreateQuotation(int? customerId)
-        {
-            var dealerId = GetCurrentDealerId();
-            var customers = await _customerService.GetCustomersByDealerAsync(dealerId);
-            var variants = await _vehicleService.GetAllVehicleVariantsAsync();
-
-            ViewBag.Customers = customers.Select(c => new SelectListItem
-            {
-                Value = c.CustomerId.ToString(),
-                Text = $"{c.FullName} - {c.Email}",
-                Selected = customerId.HasValue && c.CustomerId == customerId.Value
-            }).ToList();
-
-            ViewBag.VehicleVariants = variants.Select(v => new SelectListItem
-            {
-                Value = v.VariantId.ToString(),
-                Text = $"{v.VehicleModel?.Manufacturer?.Name} {v.VehicleModel?.Name} {v.Version} - {v.Color}"
-            }).ToList();
-
-            return View();
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> CreateQuotation(Quotation quotation)
-        {
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    quotation.DealerId = GetCurrentDealerId();
-                    quotation.CreatedAt = DateTime.Now;
-                    quotation.Status = "Pending";
-                    
-                    await _salesService.CreateQuotationAsync(quotation);
-                    TempData["Success"] = "Quotation created successfully!";
-                    return RedirectToAction(nameof(Quotations));
-                }
-                catch (Exception ex)
-                {
-                    TempData["Error"] = $"Error creating quotation: {ex.Message}";
-                }
-            }
-
-            await LoadQuotationViewData();
-            return View(quotation);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> ApproveQuotation(int id)
-        {
-            try
-            {
-                var quotation = await _salesService.GetQuotationByIdAsync(id);
-                if (quotation != null && quotation.DealerId == GetCurrentDealerId())
-                {
-                    await _salesService.ApproveQuotationAsync(id);
-                    TempData["Success"] = "Quotation approved successfully!";
-                }
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"Error approving quotation: {ex.Message}";
-            }
-            return RedirectToAction(nameof(Quotations));
-        }
-
-        #endregion
-
         #region Order Management
 
         public async Task<IActionResult> Orders()
@@ -231,26 +150,10 @@ namespace ASM1.WebMVC.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> CreateOrder(int? quotationId)
+        public async Task<IActionResult> CreateOrder()
         {
             var dealerId = GetCurrentDealerId();
             
-            if (quotationId.HasValue)
-            {
-                var quotation = await _salesService.GetQuotationByIdAsync(quotationId.Value);
-                if (quotation != null && quotation.DealerId == dealerId)
-                {
-                    var order = new Order
-                    {
-                        CustomerId = quotation.CustomerId,
-                        VariantId = quotation.VariantId,
-                        DealerId = dealerId
-                    };
-                    ViewBag.QuotationId = quotationId.Value;
-                    return View(order);
-                }
-            }
-
             var customers = await _customerService.GetCustomersByDealerAsync(dealerId);
             var variants = await _vehicleService.GetAllVehicleVariantsAsync();
 
@@ -270,7 +173,7 @@ namespace ASM1.WebMVC.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateOrder(Order order, int? quotationId)
+        public async Task<IActionResult> CreateOrder(Order order)
         {
             if (ModelState.IsValid)
             {
@@ -281,12 +184,6 @@ namespace ASM1.WebMVC.Controllers
                     order.Status = "Pending";
                     
                     await _salesService.CreateOrderAsync(order);
-                    
-                    // Update quotation status if created from quotation
-                    if (quotationId.HasValue)
-                    {
-                        await _salesService.UpdateQuotationStatusAsync(quotationId.Value, "Accepted");
-                    }
                     
                     TempData["Success"] = "Order created successfully!";
                     return RedirectToAction(nameof(Orders));

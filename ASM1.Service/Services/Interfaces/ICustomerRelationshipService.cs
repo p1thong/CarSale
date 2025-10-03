@@ -7,6 +7,7 @@ namespace ASM1.Service.Services.Interfaces
         // Customer Management
         Task<IEnumerable<Customer>> GetCustomersByDealerAsync(int dealerId);
         Task<Customer?> GetCustomerByIdAsync(int customerId);
+        Task<Customer?> GetCustomerByEmailAsync(string email);
         Task<Customer> CreateCustomerAsync(Customer customer);
         Task<Customer> UpdateCustomerAsync(Customer customer);
 

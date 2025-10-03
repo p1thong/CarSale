@@ -1,0 +1,212 @@
+@model IEnumerable<Order>
+@{
+    ViewData["Title"] = "Đơn hàng của tôi";
+}
+
+<div class="container mt-4">
+    <!-- Debug Info (remove this later) -->
+    @if (ViewBag.SessionCustomerId != null || ViewBag.UserRole != null)
+    {
+        <div class="alert alert-info">
+            <strong>Debug Info:</strong><br>
+            Session Customer ID: @ViewBag.SessionCustomerId<br>
+            User Role: @ViewBag.UserRole<br>
+            Orders Count: @ViewBag.OrdersCount
+            @if (!string.IsNullOrEmpty(ViewBag.Error as string))
+            {
+                <br><strong>Error:</strong> @ViewBag.Error
+            }
+        </div>
+    }
+
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h2 class="mb-0">
+            <i class="fas fa-list-alt text-primary me-2"></i>
+            Đơn hàng của tôi
+        </h2>
+        <a href="@Url.Action("Index", "Home")" class="btn btn-outline-primary">
+            <i class="fas fa-plus me-2"></i>
+            Đặt thêm xe
+        </a>
+    </div>
+
+    @if (Model.Any())
+    {
+        <!-- Thống kê nhanh -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-warning text-dark">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">
+                            <i class="fas fa-clock me-2"></i>
+                            Chờ xác nhận
+                        </h5>
+                        <h3>@Model.Count(o => o.Status == "Pending")</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">
+                            <i class="fas fa-check me-2"></i>
+                            Đã xác nhận
+                        </h5>
+                        <h3>@Model.Count(o => o.Status == "Confirmed")</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">
+                            <i class="fas fa-flag-checkered me-2"></i>
+                            Hoàn thành
+                        </h5>
+                        <h3>@Model.Count(o => o.Status == "Completed")</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-danger text-white">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">
+                            <i class="fas fa-times me-2"></i>
+                            Đã từ chối
+                        </h5>
+                        <h3>@Model.Count(o => o.Status == "Rejected")</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Danh sách đơn hàng -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-receipt me-2"></i>
+                    Danh sách đơn hàng (@Model.Count() đơn)
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Mã đơn</th>
+                                <th>Ngày đặt</th>
+                                <th>Xe</th>
+                                <th>Giá</th>
+                                <th>Trạng thái</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in Model.OrderByDescending(o => o.OrderDate))
+                            {
+                                <tr>
+                                    <td>
+                                        <strong class="text-primary">#@order.OrderId</strong>
+                                    </td>
+                                    <td>
+                                        @order.OrderDate?.ToString("dd/MM/yyyy")<br>
+                                        <small class="text-muted">@order.OrderDate?.ToString("dd/MM/yyyy")</small>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            @if (!string.IsNullOrEmpty(order.Variant?.VehicleModel?.ImageUrl))
+                                            {
+                                                <img src="@order.Variant.VehicleModel.ImageUrl" 
+                                                     alt="@order.Variant.VehicleModel.ModelName" 
+                                                     class="me-3 rounded" 
+                                                     style="width: 60px; height: 40px; object-fit: cover;">
+                                            }
+                                            else
+                                            {
+                                                <div class="me-3 bg-light d-flex align-items-center justify-content-center rounded" 
+                                                     style="width: 60px; height: 40px;">
+                                                    <i class="fas fa-car text-muted"></i>
+                                                </div>
+                                            }
+                                            <div>
+                                                <div class="fw-bold">@order.Variant?.VehicleModel?.ModelName</div>
+                                                <small class="text-muted">
+                                                    @order.Variant?.VehicleModel?.Manufacturer?.Name
+                                                    - @order.Variant?.Version (@order.Variant?.Color)
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold text-success">
+                                            @(order.Variant?.Price?.ToString("C0", new System.Globalization.CultureInfo("en-US")))
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @switch (order.Status)
+                                        {
+                                            case "Pending":
+                                                <span class="badge bg-warning">
+                                                    <i class="fas fa-clock me-1"></i>Chờ xác nhận
+                                                </span>
+                                                break;
+                                            case "Confirmed":
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check me-1"></i>Đã xác nhận
+                                                </span>
+                                                break;
+                                            case "Rejected":
+                                                <span class="badge bg-danger">
+                                                    <i class="fas fa-times me-1"></i>Đã từ chối
+                                                </span>
+                                                break;
+                                            case "Completed":
+                                                <span class="badge bg-info">
+                                                    <i class="fas fa-flag-checkered me-1"></i>Hoàn thành
+                                                </span>
+                                                break;
+                                            default:
+                                                <span class="badge bg-secondary">@order.Status</span>
+                                                break;
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="@Url.Action("OrderStatus", "CustomerOrder", new { orderId = order.OrderId })" 
+                                               class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-eye"></i> Chi tiết
+                                            </a>
+                                            @if (order.Status == "Confirmed")
+                                            {
+                                                <a href="@Url.Action("Payment", "CustomerOrder", new { orderId = order.OrderId })" 
+                                                   class="btn btn-success btn-sm">
+                                                    <i class="fas fa-credit-card"></i> Thanh toán
+                                                </a>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Empty state -->
+        <div class="card shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">Chưa có đơn hàng nào</h4>
+                <p class="text-muted mb-4">Bạn chưa đặt mua xe nào. Hãy khám phá và chọn xe phù hợp với bạn!</p>
+                <a href="@Url.Action("Index", "Home")" class="btn btn-primary">
+                    <i class="fas fa-search me-2"></i>
+                    Khám phá xe ngay
+                </a>
+            </div>
+        </div>
+    }
+</div>

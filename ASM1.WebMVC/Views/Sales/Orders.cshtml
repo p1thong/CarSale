@@ -9,9 +9,9 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2>Order Management</h2>
-                <a asp-action="Quotations" class="btn btn-success">
-                    <i class="fa fa-file-text"></i> View Quotations
-                </a>
+                <div class="text-muted">
+                    <small>Dealer ID: @ViewBag.CurrentDealerId | Orders: @ViewBag.OrderCount</small>
+                </div>
             </div>
 
             <div class="card">

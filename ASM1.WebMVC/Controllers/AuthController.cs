@@ -76,6 +76,12 @@ namespace ASM1.WebMVC.Controllers
             HttpContext.Session.SetString("UserRole", user.Role.ToString());
             HttpContext.Session.SetString("UserName", user.FullName);
             HttpContext.Session.SetString("UserEmail", user.Email);
+            
+            // Lưu DealerId cho SalesController
+            if (user.DealerId.HasValue)
+            {
+                HttpContext.Session.SetInt32("DealerId", user.DealerId.Value);
+            }
 
             // Thêm thông báo thành công
             TempData["SuccessMessage"] = $"Đăng nhập thành công! Chào mừng {user.FullName} ({user.Role})";
