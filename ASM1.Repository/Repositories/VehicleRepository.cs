@@ -163,5 +163,25 @@ namespace ASM1.Repository.Repositories
             await _context.SaveChangesAsync();
             return manufacturer;
         }
+
+        public async Task DeleteManufacturerAsync(int manufacturerId)
+        {
+            var manufacturer = await _context.Manufacturers.FindAsync(manufacturerId);
+            if (manufacturer != null)
+            {
+                _context.Manufacturers.Remove(manufacturer);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task DeleteVehicleModelAsync(int modelId)
+        {
+            var model = await _context.VehicleModels.FindAsync(modelId);
+            if (model != null)
+            {
+                _context.VehicleModels.Remove(model);
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }

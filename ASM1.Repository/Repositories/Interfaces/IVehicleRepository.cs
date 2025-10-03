@@ -23,9 +23,11 @@ namespace ASM1.Repository.Repositories.Interfaces
         // Manufacturer Management
         Task<IEnumerable<Manufacturer>> GetAllManufacturersAsync();
         Task<Manufacturer?> GetManufacturerByIdAsync(int manufacturerId);
-        Task<bool> ManufacturerExistsAsync(int manufacturerId);
-        Task<bool> VehicleModelNameExistsAsync(string name, int manufacturerId, int? excludeId = null);
         Task<Manufacturer> CreateManufacturerAsync(Manufacturer manufacturer);
         Task<Manufacturer> UpdateManufacturerAsync(Manufacturer manufacturer);
+        Task DeleteManufacturerAsync(int manufacturerId);
+        Task DeleteVehicleModelAsync(int modelId);
+        Task<bool> ManufacturerExistsAsync(int manufacturerId);
+        Task<bool> VehicleModelNameExistsAsync(string name, int manufacturerId, int? excludeId = null);
     }
 }

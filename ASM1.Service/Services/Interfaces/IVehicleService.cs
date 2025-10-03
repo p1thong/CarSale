@@ -34,7 +34,9 @@ namespace ASM1.Service.Services.Interfaces
             int? excludeId = null
         );
         Task<bool> CanDeleteManufacturerAsync(int manufacturerId);
+        Task DeleteManufacturerAsync(int manufacturerId);
         Task<bool> CanDeleteVehicleModelAsync(int modelId);
+        Task DeleteVehicleModelAsync(int modelId);
         Task<IEnumerable<VehicleModel>> SearchVehicleModelsAsync(string searchTerm);
         Task<IEnumerable<VehicleVariant>> SearchVehicleVariantsAsync(string searchTerm);
     }

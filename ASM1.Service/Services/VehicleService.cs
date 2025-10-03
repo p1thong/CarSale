@@ -252,10 +252,34 @@ namespace ASM1.Service.Services
             return !models.Any();
         }
 
+        public async Task DeleteManufacturerAsync(int manufacturerId)
+        {
+            // Check if can delete first
+            var canDelete = await CanDeleteManufacturerAsync(manufacturerId);
+            if (!canDelete)
+            {
+                throw new InvalidOperationException("Cannot delete manufacturer that has vehicle models associated with it.");
+            }
+
+            await _vehicleRepository.DeleteManufacturerAsync(manufacturerId);
+        }
+
         public async Task<bool> CanDeleteVehicleModelAsync(int modelId)
         {
             var variants = await _vehicleRepository.GetVehicleVariantsByModelAsync(modelId);
             return !variants.Any();
+        }
+
+        public async Task DeleteVehicleModelAsync(int modelId)
+        {
+            // Check if can delete first
+            var canDelete = await CanDeleteVehicleModelAsync(modelId);
+            if (!canDelete)
+            {
+                throw new InvalidOperationException("Cannot delete vehicle model that has variants associated with it.");
+            }
+
+            await _vehicleRepository.DeleteVehicleModelAsync(modelId);
         }
 
         public async Task<IEnumerable<VehicleModel>> SearchVehicleModelsAsync(string searchTerm)
