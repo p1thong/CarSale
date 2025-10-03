@@ -15,6 +15,15 @@
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">ASM1.WebMVC</a>
+                
+                <!-- Debug Info -->
+                <small class="text-muted">
+                    Session UserRole: "@Context.Session.GetString("UserRole")" | 
+                    ViewBag UserRole: "@ViewBag.UserRole" | 
+                    UserId: "@Context.Session.GetString("UserId")" |
+                    UserEmail: "@Context.Session.GetString("UserEmail")"
+                </small>
+                
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -39,19 +48,55 @@
                                 </a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><h6 class="dropdown-header">Sales Process</h6></li>
-                                <li><a class="dropdown-item" asp-controller="Sales" asp-action="Quotations">
-                                    <i class="fas fa-file-text"></i> Quotations
+                                <li><a class="dropdown-item" asp-controller="DealerOrder" asp-action="PendingOrders">
+                                    <i class="fas fa-clock"></i> Pending Orders
                                 </a></li>
-                                <li><a class="dropdown-item" asp-controller="Sales" asp-action="Orders">
-                                    <i class="fas fa-list"></i> Orders
-                                </a></li>
-                                <li><a class="dropdown-item" asp-controller="Sales" asp-action="CreateOrder">
-                                    <i class="fas fa-plus"></i> Create Order
+                                <li><a class="dropdown-item" asp-controller="DealerOrder" asp-action="AllOrders">
+                                    <i class="fas fa-list"></i> All Orders
                                 </a></li>
                                 <li><a class="dropdown-item" asp-controller="Sales" asp-action="SalesContracts">
                                     <i class="fas fa-file-contract"></i> Sales Contracts
                                 </a></li>
                             </ul>
+                        </li>
+
+                        <!-- Sales Flow System with Role-based Access -->
+                        @if (Context.Session.GetString("UserRole") == "Customer" || Context.Session.GetString("UserRole") == "Dealer")
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle text-primary" href="#" role="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-rocket"></i> Sales Flow
+                                </a>
+                                <ul class="dropdown-menu">
+                                    @if (Context.Session.GetString("UserRole") == "Customer" || Context.Session.GetString("UserRole") == "customer")
+                                    {
+                                        <li><h6 class="dropdown-header">📋 Customer Services</h6></li>
+                                        <li><a class="dropdown-item" asp-controller="Product" asp-action="VehicleModels">
+                                            <i class="fas fa-car"></i> Browse Vehicles
+                                        </a></li>
+                                        <li><a class="dropdown-item" asp-controller="CustomerOrder" asp-action="MyOrders">
+                                            <i class="fas fa-shopping-cart"></i> My Orders
+                                        </a></li>
+                                    }
+                                    @if (Context.Session.GetString("UserRole") == "Dealer")
+                                    {
+                                        <li><h6 class="dropdown-header">🏪 Dealer Management</h6></li>
+                                        <li><a class="dropdown-item" asp-controller="DealerOrder" asp-action="PendingOrders">
+                                            <i class="fas fa-clock"></i> Pending Orders
+                                        </a></li>
+                                        <li><a class="dropdown-item" asp-controller="DealerOrder" asp-action="AllOrders">
+                                            <i class="fas fa-list"></i> All Orders
+                                        </a></li>
+                                    }
+                                </ul>
+                            </li>
+                        }
+                        
+                        <!-- Quick Access to Customer Orders (Always visible for testing) -->
+                        <li class="nav-item">
+                            <a class="nav-link text-info" asp-controller="CustomerOrder" asp-action="MyOrders">
+                                <i class="fas fa-shopping-cart"></i> My Orders (Test)
+                            </a>
                         </li>
 
                         <!-- Main Flow 2: Product & Distribution -->
@@ -126,9 +171,6 @@
                                     </a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li><h6 class="dropdown-header">My Services</h6></li>
-                                    <li><a class="dropdown-item" asp-controller="Customer" asp-action="MyQuotations">
-                                        <i class="fas fa-file-text"></i> My Quotations
-                                    </a></li>
                                     <li><a class="dropdown-item" asp-controller="Customer" asp-action="MyOrders">
                                         <i class="fas fa-shopping-bag"></i> My Orders
                                     </a></li>

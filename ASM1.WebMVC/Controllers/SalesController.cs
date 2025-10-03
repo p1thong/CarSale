@@ -2,6 +2,8 @@ using ASM1.Repository.Models;
 using ASM1.Service.Services.Interfaces;
 using ASM1.WebMVC.Models;
 using Microsoft.AspNetCore.Mvc;
+using ASM1.Repository.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace ASM1.WebMVC.Controllers
 {
@@ -10,16 +12,19 @@ namespace ASM1.WebMVC.Controllers
         private readonly ISalesService _salesService;
         private readonly ICustomerRelationshipService _customerService;
         private readonly IVehicleService _vehicleService;
+        private readonly CarSalesDbContext _context;
 
         public SalesController(
             ISalesService salesService,
             ICustomerRelationshipService customerService,
-            IVehicleService vehicleService
+            IVehicleService vehicleService,
+            CarSalesDbContext context
         )
         {
             _salesService = salesService;
             _customerService = customerService;
             _vehicleService = vehicleService;
+            _context = context;
         }
 
         // Customer Management Actions
@@ -29,13 +34,18 @@ namespace ASM1.WebMVC.Controllers
             {
                 var dealerId = GetCurrentDealerId();
                 var customers = await _salesService.GetCustomersByDealerAsync(dealerId);
-                
+
+                // Debug information
+                ViewBag.DealerId = dealerId;
+                ViewBag.CustomerCount = customers?.Count() ?? 0;
+
                 // Thêm thông báo nếu không có khách hàng
                 if (customers == null || !customers.Any())
                 {
-                    ViewBag.Message = "Chưa có khách hàng nào. Hãy thêm khách hàng mới!";
+                    ViewBag.Message =
+                        $"Chưa có khách hàng nào cho dealer ID {dealerId}. Hãy thêm khách hàng mới!";
                 }
-                
+
                 return View(customers);
             }
             catch (Exception ex)
@@ -69,6 +79,58 @@ namespace ASM1.WebMVC.Controllers
                 }
             }
             return View(customer);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateSampleCustomers()
+        {
+            try
+            {
+                var dealerId = GetCurrentDealerId();
+
+                // Create sample customers
+                var sampleCustomers = new List<Customer>
+                {
+                    new Customer
+                    {
+                        DealerId = dealerId,
+                        FullName = "Nguyễn Văn A",
+                        Email = "nguyenvana@gmail.com",
+                        Phone = "0123456789",
+                        Birthday = DateOnly.FromDateTime(DateTime.Now.AddYears(-25)),
+                    },
+                    new Customer
+                    {
+                        DealerId = dealerId,
+                        FullName = "Trần Thị B",
+                        Email = "tranthib@gmail.com",
+                        Phone = "0987654321",
+                        Birthday = DateOnly.FromDateTime(DateTime.Now.AddYears(-30)),
+                    },
+                    new Customer
+                    {
+                        DealerId = dealerId,
+                        FullName = "Lê Văn C",
+                        Email = "levanc@gmail.com",
+                        Phone = "0369852147",
+                        Birthday = DateOnly.FromDateTime(DateTime.Now.AddYears(-35)),
+                    },
+                };
+
+                foreach (var customer in sampleCustomers)
+                {
+                    await _salesService.CreateOrUpdateCustomerAsync(customer);
+                }
+
+                TempData["Success"] =
+                    $"Đã tạo {sampleCustomers.Count} khách hàng mẫu cho dealer ID {dealerId}!";
+                return RedirectToAction(nameof(Customers));
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Lỗi khi tạo khách hàng mẫu: {ex.Message}";
+                return RedirectToAction(nameof(Customers));
+            }
         }
 
         [HttpGet]
@@ -110,166 +172,173 @@ namespace ASM1.WebMVC.Controllers
             return View(customer);
         }
 
-        // Quotation Management Actions
-        public async Task<IActionResult> Quotations()
-        {
-            var dealerId = GetCurrentDealerId();
-            var quotations = await _salesService.GetQuotationsByDealerAsync(dealerId);
-            
-            // Debug log
-            Console.WriteLine($"DEBUG: DealerId = {dealerId}, Quotations count = {quotations?.Count() ?? 0}");
-            foreach (var q in quotations ?? Enumerable.Empty<Quotation>())
-            {
-                Console.WriteLine($"  Quotation #{q.QuotationId}: Customer={q.Customer?.FullName}, Status={q.Status}, Price={q.Price}");
-            }
-            
-            return View(quotations);
-        }
-
+        // ========== ORDER & PAYMENT FLOW ==========
+        
         [HttpGet]
-        public async Task<IActionResult> CreateQuotation(int customerId)
+        public async Task<IActionResult> CreateOrderDirect(int? customerId = null)
         {
             try
             {
-                // Truyền customerId để view xử lý
-                ViewBag.CustomerId = customerId;
-                
-                // Nếu có customerId, lấy thông tin khách hàng
-                if (customerId > 0)
-                {
-                    var customer = await _salesService.GetCustomerAsync(customerId);
-                    if (customer == null)
-                    {
-                        TempData["Error"] = "Không tìm thấy khách hàng.";
-                        return RedirectToAction(nameof(Customers));
-                    }
-                    ViewBag.Customer = customer;
-                }
-                
-                // Lấy danh sách phiên bản xe có sẵn từ DB
-                var vehicleVariants = await _vehicleService.GetAvailableVariantsAsync();
-                if (vehicleVariants == null || !vehicleVariants.Any())
-                {
-                    TempData["Warning"] = "Không có phiên bản xe nào có sẵn. Vui lòng thêm xe vào kho trước.";
-                }
-                ViewBag.VehicleVariants = vehicleVariants;
-                
-                // Lấy danh sách khách hàng từ DB cho dropdown
                 var dealerId = GetCurrentDealerId();
-                var customers = await _salesService.GetCustomersByDealerAsync(dealerId);
-                if (customers == null || !customers.Any())
-                {
-                    ViewBag.CustomerMessage = "Chưa có khách hàng nào. Hãy thêm khách hàng trước khi tạo báo giá.";
-                }
-                ViewBag.Customers = customers;
                 
-                return View("CreateQuotation");
+                // Load data for dropdowns
+                var customers = await _salesService.GetCustomersByDealerAsync(dealerId);
+                var variants = await _vehicleService.GetAvailableVariantsAsync();
+                
+                ViewBag.Customers = customers;
+                ViewBag.VehicleVariants = variants;
+                ViewBag.SelectedCustomerId = customerId;
+                ViewBag.DealerId = dealerId;
+                
+                return View();
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Lỗi khi tải form báo giá: {ex.Message}";
+                TempData["Error"] = $"Lỗi khi tải form tạo hóa đơn: {ex.Message}";
                 return RedirectToAction(nameof(Customers));
             }
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateQuotation(
-            int customerId,
-            int variantId,
-            decimal price,
-            int quantity = 1,
-            decimal discount = 0
-        )
+        public async Task<IActionResult> CreateOrderDirect(int customerId, int variantId, int quantity = 1)
         {
             try
             {
-                // Validate input parameters
-                if (customerId <= 0)
+                var dealerId = GetCurrentDealerId();
+                
+                // Validate
+                if (customerId <= 0 || variantId <= 0)
                 {
-                    TempData["Error"] = "Please select a valid customer.";
-                    return RedirectToAction(nameof(CreateQuotation), new { customerId });
+                    TempData["Error"] = "Vui lòng chọn khách hàng và xe.";
+                    return RedirectToAction(nameof(CreateOrderDirect), new { customerId });
                 }
-
-                if (variantId <= 0)
-                {
-                    TempData["Error"] = "Please select a valid vehicle variant.";
-                    return RedirectToAction(nameof(CreateQuotation), new { customerId });
-                }
-
-                if (price <= 0)
-                {
-                    TempData["Error"] = "Price must be greater than 0.";
-                    return RedirectToAction(nameof(CreateQuotation), new { customerId });
-                }
-
-                if (quantity <= 0)
-                {
-                    TempData["Error"] = "Quantity must be greater than 0.";
-                    return RedirectToAction(nameof(CreateQuotation), new { customerId });
-                }
-
-                // Validate stock availability
+                
+                // Check variant availability
                 var variant = await _vehicleService.GetVehicleVariantByIdAsync(variantId);
                 if (variant == null)
                 {
-                    TempData["Error"] = "Selected vehicle variant not found.";
-                    return RedirectToAction(nameof(CreateQuotation), new { customerId });
+                    TempData["Error"] = "Không tìm thấy xe được chọn.";
+                    return RedirectToAction(nameof(CreateOrderDirect), new { customerId });
                 }
-
-                if (quantity > variant.Quantity)
+                
+                if (variant.Quantity < quantity)
                 {
-                    TempData["Error"] = $"Requested quantity ({quantity}) exceeds available stock ({variant.Quantity}).";
-                    return RedirectToAction(nameof(CreateQuotation), new { customerId });
+                    TempData["Error"] = $"Số lượng yêu cầu ({quantity}) vượt quá tồn kho ({variant.Quantity}).";
+                    return RedirectToAction(nameof(CreateOrderDirect), new { customerId });
                 }
-
-                if (discount < 0 || discount > 100)
+                
+                // Create order
+                var order = new Order
                 {
-                    TempData["Error"] = "Discount must be between 0% and 100%.";
-                    return RedirectToAction(nameof(CreateQuotation), new { customerId });
-                }
-
-                var dealerId = GetCurrentDealerId();
-                var quotation = await _salesService.CreateQuotationAsync(
-                    customerId,
-                    variantId,
-                    dealerId,
-                    price
-                );
-                TempData["Success"] = "Quotation created successfully!";
-                return RedirectToAction(nameof(Quotations));
+                    DealerId = dealerId,
+                    CustomerId = customerId,
+                    VariantId = variantId,
+                    Status = "Pending",
+                    OrderDate = DateOnly.FromDateTime(DateTime.Now)
+                };
+                
+                var createdOrder = await _salesService.CreateOrderAsync(order);
+                
+                TempData["Success"] = $"Tạo hóa đơn #{createdOrder.OrderId} thành công!";
+                return RedirectToAction(nameof(OrderPayment), new { orderId = createdOrder.OrderId });
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Error creating quotation: {ex.Message}";
-                return RedirectToAction(nameof(CreateQuotation), new { customerId });
+                TempData["Error"] = $"Lỗi khi tạo hóa đơn: {ex.Message}";
+                return RedirectToAction(nameof(CreateOrderDirect), new { customerId });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> OrderPayment(int orderId)
+        {
+            try
+            {
+                var order = await _salesService.GetOrderAsync(orderId);
+                if (order == null)
+                {
+                    TempData["Error"] = "Không tìm thấy hóa đơn.";
+                    return RedirectToAction(nameof(Orders));
+                }
+                
+                var payments = await _salesService.GetPaymentsByOrderAsync(orderId);
+                var totalPaid = payments?.Sum(p => p.Amount ?? 0) ?? 0;
+                var orderTotal = order.Variant?.Price ?? 0;
+                var remainingBalance = orderTotal - totalPaid;
+                
+                ViewBag.Order = order;
+                ViewBag.Payments = payments;
+                ViewBag.TotalPaid = totalPaid;
+                ViewBag.OrderTotal = orderTotal;
+                ViewBag.RemainingBalance = remainingBalance;
+                ViewBag.IsFullyPaid = remainingBalance <= 0;
+                
+                return View();
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Lỗi khi tải trang thanh toán: {ex.Message}";
+                return RedirectToAction(nameof(Orders));
             }
         }
 
         [HttpPost]
-        public async Task<IActionResult> ApproveQuotation(int quotationId)
+        public async Task<IActionResult> ProcessPaymentDirect(int orderId, decimal amount, string paymentMethod = "Cash")
         {
             try
             {
-                var quotation = await _salesService.ApproveQuotationAsync(quotationId);
-                return Json(new { success = true, message = "Quotation approved successfully!" });
+                if (amount <= 0)
+                {
+                    TempData["Error"] = "Số tiền thanh toán phải lớn hơn 0.";
+                    return RedirectToAction(nameof(OrderPayment), new { orderId });
+                }
+                
+                var payment = new Payment
+                {
+                    OrderId = orderId,
+                    Amount = amount,
+                    PaymentMethod = paymentMethod,
+                    PaymentDate = DateTime.Now,
+                    Status = "Completed"
+                };
+                
+                await _salesService.ProcessPaymentAsync(orderId, amount, paymentMethod);
+                
+                TempData["Success"] = $"Thanh toán {amount:C0} thành công!";
+                return RedirectToAction(nameof(OrderPayment), new { orderId });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                TempData["Error"] = $"Lỗi khi thanh toán: {ex.Message}";
+                return RedirectToAction(nameof(OrderPayment), new { orderId });
             }
         }
 
         [HttpPost]
-        public async Task<IActionResult> RejectQuotation(int quotationId)
+        public async Task<IActionResult> CompleteOrderDirect(int orderId)
         {
             try
             {
-                var quotation = await _salesService.RejectQuotationAsync(quotationId);
-                return Json(new { success = true, message = "Quotation rejected successfully!" });
+                var order = await _salesService.GetOrderAsync(orderId);
+                var payments = await _salesService.GetPaymentsByOrderAsync(orderId);
+                var totalPaid = payments?.Sum(p => p.Amount ?? 0) ?? 0;
+                var orderTotal = order?.Variant?.Price ?? 0;
+                
+                if (totalPaid < orderTotal)
+                {
+                    TempData["Error"] = $"Chưa thanh toán đủ. Còn thiếu: {(orderTotal - totalPaid):C0}";
+                    return RedirectToAction(nameof(OrderPayment), new { orderId });
+                }
+                
+                await _salesService.UpdateOrderStatusAsync(orderId, "Completed");
+                
+                TempData["Success"] = "Hoàn thành hóa đơn thành công!";
+                return RedirectToAction(nameof(Orders));
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                TempData["Error"] = $"Lỗi khi hoàn thành hóa đơn: {ex.Message}";
+                return RedirectToAction(nameof(OrderPayment), new { orderId });
             }
         }
 
@@ -278,6 +347,11 @@ namespace ASM1.WebMVC.Controllers
         {
             var dealerId = GetCurrentDealerId();
             var orders = await _salesService.GetOrdersByDealerAsync(dealerId);
+            
+            // Debug info
+            ViewBag.CurrentDealerId = dealerId;
+            ViewBag.OrderCount = orders?.Count() ?? 0;
+            
             return View(orders);
         }
 
@@ -287,16 +361,16 @@ namespace ASM1.WebMVC.Controllers
             try
             {
                 var dealerId = GetCurrentDealerId();
-                
+
                 // Load customers and vehicles for dropdowns
                 var customers = await _salesService.GetCustomersByDealerAsync(dealerId);
                 var variants = await _vehicleService.GetAllVehicleVariantsAsync();
-                
+
                 ViewBag.Customers = customers;
                 ViewBag.VehicleVariants = variants;
                 ViewBag.PreselectedCustomerId = customerId;
                 ViewBag.PreselectedVariantId = variantId;
-                
+
                 return View();
             }
             catch (Exception ex)
@@ -312,16 +386,16 @@ namespace ASM1.WebMVC.Controllers
             try
             {
                 var dealerId = GetCurrentDealerId();
-                
+
                 var order = new Order
                 {
                     DealerId = dealerId,
                     CustomerId = model.CustomerId,
                     VariantId = model.VariantId,
                     Status = "Pending",
-                    OrderDate = DateOnly.FromDateTime(DateTime.Now)
+                    OrderDate = DateOnly.FromDateTime(DateTime.Now),
                 };
-                
+
                 await _salesService.CreateOrderAsync(order);
                 TempData["Success"] = "Order created successfully!";
                 return RedirectToAction(nameof(Orders));
@@ -329,26 +403,19 @@ namespace ASM1.WebMVC.Controllers
             catch (Exception ex)
             {
                 TempData["Error"] = $"Error creating order: {ex.Message}";
-                
+
                 // Reload form data on error
                 var dealerId = GetCurrentDealerId();
                 var customers = await _salesService.GetCustomersByDealerAsync(dealerId);
                 var variants = await _vehicleService.GetAllVehicleVariantsAsync();
-                
+
                 ViewBag.Customers = customers;
                 ViewBag.VehicleVariants = variants;
                 ViewBag.PreselectedCustomerId = model.CustomerId;
                 ViewBag.PreselectedVariantId = model.VariantId;
-                
+
                 return View(model);
             }
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> CreateOrderFromQuotation(int quotationId)
-        {
-            await _salesService.CreateOrderFromQuotationAsync(quotationId);
-            return RedirectToAction(nameof(Orders));
         }
 
         [HttpPost]
@@ -429,11 +496,19 @@ namespace ASM1.WebMVC.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateSalesContract(int orderId, decimal totalAmount, string terms)
+        public async Task<IActionResult> CreateSalesContract(
+            int orderId,
+            decimal totalAmount,
+            string terms
+        )
         {
             try
             {
-                var contract = await _salesService.CreateSalesContractAsync(orderId, totalAmount, terms);
+                var contract = await _salesService.CreateSalesContractAsync(
+                    orderId,
+                    totalAmount,
+                    terms
+                );
                 TempData["Success"] = "Hợp đồng bán xe đã được tạo thành công!";
                 return RedirectToAction(nameof(OrderDetail), new { id = orderId });
             }
@@ -473,11 +548,58 @@ namespace ASM1.WebMVC.Controllers
             }
         }
 
-        private int GetCurrentDealerId()
+        [HttpGet]
+        public IActionResult FixDatabase()
         {
-            // Implementation to get current dealer ID from session/claims
-            // This is a placeholder - implement based on your authentication system
-            return HttpContext.Session.GetInt32("DealerId") ?? 1;
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> FixIdentityColumns()
+        {
+            try
+            {
+                await _context.Database.ExecuteSqlRawAsync(@"
+                    -- Check if paymentId is already identity
+                    IF NOT EXISTS (SELECT 1 FROM sys.identity_columns WHERE OBJECT_NAME(object_id) = 'Payment')
+                    BEGIN
+                        -- Create temp table
+                        SELECT * INTO Payment_Temp FROM Payment;
+                        
+                        -- Drop and recreate table with identity
+                        DROP TABLE Payment;
+                        
+                        CREATE TABLE Payment (
+                            paymentId int IDENTITY(1,1) NOT NULL,
+                            orderId int NOT NULL,
+                            amount decimal(12,2) NOT NULL,
+                            paymentDate datetime NULL,
+                            method varchar(50) NULL,
+                            Status varchar(4000) NULL,
+                            PaymentMethod varchar(4000) NULL,
+                            CONSTRAINT PK__Payment__7536E352113ABA0A PRIMARY KEY (paymentId)
+                        );
+                        
+                        -- Restore data (excluding identity column)
+                        IF EXISTS (SELECT * FROM Payment_Temp)
+                        BEGIN
+                            SET IDENTITY_INSERT Payment ON;
+                            INSERT INTO Payment (paymentId, orderId, amount, paymentDate, method, Status, PaymentMethod)
+                            SELECT paymentId, orderId, amount, paymentDate, method, Status, PaymentMethod FROM Payment_Temp;
+                            SET IDENTITY_INSERT Payment OFF;
+                        END
+                        
+                        DROP TABLE Payment_Temp;
+                    END
+                ");
+                
+                TempData["Success"] = "Identity columns đã được fix thành công!";
+                return Json(new { success = true, message = "Identity columns fixed!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
 
         // API endpoints for CreateQuotation form
@@ -488,10 +610,13 @@ namespace ASM1.WebMVC.Controllers
             {
                 var dealerId = GetCurrentDealerId();
                 var customers = await _salesService.GetCustomersByDealerAsync(dealerId);
-                return Json(customers.Select(c => new { 
-                    value = c.CustomerId, 
-                    text = $"{c.FullName} ({c.Email})" 
-                }));
+                return Json(
+                    customers.Select(c => new
+                    {
+                        value = c.CustomerId,
+                        text = $"{c.FullName} ({c.Email})",
+                    })
+                );
             }
             catch
             {
@@ -505,10 +630,9 @@ namespace ASM1.WebMVC.Controllers
             try
             {
                 var manufacturers = await _vehicleService.GetAllManufacturersAsync();
-                return Json(manufacturers.Select(m => new { 
-                    value = m.ManufacturerId, 
-                    text = m.Name 
-                }));
+                return Json(
+                    manufacturers.Select(m => new { value = m.ManufacturerId, text = m.Name })
+                );
             }
             catch
             {
@@ -521,11 +645,10 @@ namespace ASM1.WebMVC.Controllers
         {
             try
             {
-                var models = await _vehicleService.GetVehicleModelsByManufacturerAsync(manufacturerId);
-                return Json(models.Select(m => new { 
-                    value = m.VehicleModelId, 
-                    text = m.Name 
-                }));
+                var models = await _vehicleService.GetVehicleModelsByManufacturerAsync(
+                    manufacturerId
+                );
+                return Json(models.Select(m => new { value = m.VehicleModelId, text = m.Name }));
             }
             catch
             {
@@ -539,12 +662,15 @@ namespace ASM1.WebMVC.Controllers
             try
             {
                 var variants = await _vehicleService.GetVehicleVariantsByModelAsync(modelId);
-                return Json(variants.Select(v => new { 
-                    value = v.VariantId, 
-                    text = $"{v.Version} - {v.Color ?? "N/A"}", 
-                    price = v.Price,
-                    quantity = v.Quantity 
-                }));
+                return Json(
+                    variants.Select(v => new
+                    {
+                        value = v.VariantId,
+                        text = $"{v.Version} - {v.Color ?? "N/A"}",
+                        price = v.Price,
+                        quantity = v.Quantity,
+                    })
+                );
             }
             catch
             {
@@ -552,45 +678,11 @@ namespace ASM1.WebMVC.Controllers
             }
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetQuotationDetailsJson(int quotationId)
+        private int GetCurrentDealerId()
         {
-            try
-            {
-                var quotation = await _salesService.GetQuotationAsync(quotationId);
-                if (quotation == null)
-                {
-                    return Json(new { success = false, message = "Quotation not found" });
-                }
-
-                return Json(new { 
-                    success = true,
-                    data = new {
-                        quotationId = quotation.QuotationId,
-                        status = quotation.Status,
-                        price = quotation.Price,
-                        createdAt = quotation.CreatedAt?.ToString("dd/MM/yyyy HH:mm"),
-                        customer = new {
-                            name = quotation.Customer?.FullName ?? "N/A",
-                            email = quotation.Customer?.Email ?? "N/A",
-                            phone = quotation.Customer?.Phone ?? "N/A"
-                        },
-                        vehicle = new {
-                            model = quotation.Variant?.VehicleModel?.Name ?? "N/A",
-                            version = quotation.Variant?.Version ?? "N/A",
-                            color = quotation.Variant?.Color ?? "N/A",
-                            basePrice = quotation.Variant?.Price ?? 0
-                        },
-                        dealer = new {
-                            name = quotation.Dealer?.FullName ?? "N/A"
-                        }
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
+            // Implementation to get current dealer ID from session/claims
+            // This is a placeholder - implement based on your authentication system
+            return HttpContext.Session.GetInt32("DealerId") ?? 1;
         }
     }
 }

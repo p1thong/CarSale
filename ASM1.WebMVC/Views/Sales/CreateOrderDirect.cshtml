@@ -1,0 +1,120 @@
+@{
+    ViewData["Title"] = "Tạo hóa đơn trực tiếp";
+    var customers = ViewBag.Customers as IEnumerable<ASM1.Repository.Models.Customer>;
+    var variants = ViewBag.VehicleVariants as IEnumerable<ASM1.Repository.Models.VehicleVariant>;
+    var selectedCustomerId = ViewBag.SelectedCustomerId;
+}
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-plus-circle"></i> Tạo hóa đơn mới</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="CreateOrderDirect" method="post">
+                        <!-- Customer Selection -->
+                        <div class="mb-4">
+                            <label class="form-label">Khách hàng <span class="text-danger">*</span></label>
+                            <select name="customerId" class="form-select" required @(selectedCustomerId != null ? "disabled" : "")>
+                                <option value="">-- Chọn khách hàng --</option>
+                                @if (customers != null)
+                                {
+                                    @foreach (var customer in customers)
+                                    {
+                                        <option value="@customer.CustomerId" 
+                                                selected="@(selectedCustomerId?.ToString() == customer.CustomerId.ToString())">
+                                            @customer.FullName - @customer.Email - @customer.Phone
+                                        </option>
+                                    }
+                                }
+                            </select>
+                            @if (selectedCustomerId != null)
+                            {
+                                <input type="hidden" name="customerId" value="@selectedCustomerId" />
+                                <div class="form-text text-success">
+                                    <i class="fas fa-lock"></i> Khách hàng đã được chọn sẵn
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Vehicle Selection -->
+                        <div class="mb-4">
+                            <label class="form-label">Xe <span class="text-danger">*</span></label>
+                            <select name="variantId" id="variantSelect" class="form-select" required onchange="updatePrice()">
+                                <option value="">-- Chọn xe --</option>
+                                @if (variants != null)
+                                {
+                                    @foreach (var variant in variants)
+                                    {
+                                        <option value="@variant.VariantId" 
+                                                data-price="@variant.Price" 
+                                                data-quantity="@variant.Quantity">
+                                            @variant.VehicleModel?.Name - @variant.Version (@variant.Color) 
+                                            - @((variant.Price ?? 0).ToString("C", new System.Globalization.CultureInfo("vi-VN"))) 
+                                            - Tồn kho: @variant.Quantity
+                                        </option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <!-- Quantity -->
+                        <div class="mb-4">
+                            <label class="form-label">Số lượng</label>
+                            <input type="number" name="quantity" value="1" min="1" max="10" class="form-control" />
+                        </div>
+
+                        <!-- Price Info -->
+                        <div class="mb-4 p-3 bg-light rounded">
+                            <h6 class="text-success">Thông tin giá:</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Giá xe:</strong> <span id="selectedPrice" class="text-primary">0 ₫</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Tồn kho:</strong> <span id="selectedQuantity" class="text-info">0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Customers" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Quay lại
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-plus"></i> Tạo hóa đơn
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updatePrice() {
+    const select = document.getElementById('variantSelect');
+    const selectedOption = select.options[select.selectedIndex];
+    
+    if (selectedOption.value) {
+        const price = parseFloat(selectedOption.dataset.price) || 0;
+        const quantity = parseInt(selectedOption.dataset.quantity) || 0;
+        
+        document.getElementById('selectedPrice').textContent = 
+            new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+        document.getElementById('selectedQuantity').textContent = quantity;
+    } else {
+        document.getElementById('selectedPrice').textContent = '0 ₫';
+        document.getElementById('selectedQuantity').textContent = '0';
+    }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updatePrice();
+});
+</script>

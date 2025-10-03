@@ -36,14 +36,6 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card bg-warning text-white">
-                <div class="card-body">
-                    <h5 class="card-title">Quotations</h5>
-                    <h2 class="card-text">@(ViewBag.TotalQuotations ?? 0)</h2>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- Quick Actions -->
@@ -72,9 +64,6 @@
                         <div class="col-md-4">
                             <h6>Sales Operations</h6>
                             <div class="list-group">
-                                <a href="@Url.Action("Index", "Dealer", new { section = "quotations" })" class="list-group-item list-group-item-action">
-                                    <i class="fas fa-file-invoice"></i> Manage Quotations
-                                </a>
                                 <a href="@Url.Action("Index", "Dealer", new { section = "orders" })" class="list-group-item list-group-item-action">
                                     <i class="fas fa-shopping-cart"></i> Manage Orders
                                 </a>

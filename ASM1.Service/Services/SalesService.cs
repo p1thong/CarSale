@@ -7,20 +7,17 @@ namespace ASM1.Service.Services
     public class SalesService : ISalesService
     {
         private readonly ICustomerRepository _customerRepository;
-        private readonly IQuotationRepository _quotationRepository;
         private readonly IOrderRepository _orderRepository;
         private readonly IPaymentRepository _paymentRepository;
         private readonly IVehicleRepository _vehicleRepository;
 
         public SalesService(
             ICustomerRepository customerRepository,
-            IQuotationRepository quotationRepository,
             IOrderRepository orderRepository,
             IPaymentRepository paymentRepository,
             IVehicleRepository vehicleRepository)
         {
             _customerRepository = customerRepository;
-            _quotationRepository = quotationRepository;
             _orderRepository = orderRepository;
             _paymentRepository = paymentRepository;
             _vehicleRepository = vehicleRepository;
@@ -49,108 +46,9 @@ namespace ASM1.Service.Services
             return await _customerRepository.GetCustomersByDealerAsync(dealerId);
         }
 
-        // Quotation Management
-        public async Task<Quotation> CreateQuotationAsync(Quotation quotation)
-        {
-            return await _quotationRepository.CreateQuotationAsync(quotation);
-        }
-
-        public async Task<Quotation?> GetQuotationByIdAsync(int quotationId)
-        {
-            return await _quotationRepository.GetQuotationByIdAsync(quotationId);
-        }
-
-        public async Task<IEnumerable<Quotation>> GetQuotationsByDealerAsync(int dealerId)
-        {
-            return await _quotationRepository.GetQuotationsByDealerAsync(dealerId);
-        }
-
-        public async Task UpdateQuotationStatusAsync(int quotationId, string status)
-        {
-            var quotation = await _quotationRepository.GetQuotationByIdAsync(quotationId);
-            if (quotation != null)
-            {
-                quotation.Status = status;
-                await _quotationRepository.UpdateQuotationAsync(quotation);
-            }
-        }
-
         // Order Management
         public async Task<Order> CreateOrderAsync(Order order)
         {
-            return await _orderRepository.CreateOrderAsync(order);
-        }
-
-        // Quotation Management
-        public async Task<Quotation> CreateQuotationAsync(int customerId, int variantId, int dealerId, decimal price)
-        {
-            var variant = await _vehicleRepository.GetVehicleVariantByIdAsync(variantId);
-            if (variant == null)
-                throw new ArgumentException("Vehicle variant not found");
-
-            var customer = await _customerRepository.GetCustomerByIdAsync(customerId);
-            if (customer == null)
-                throw new ArgumentException("Customer not found");
-
-            var quotation = new Quotation
-            {
-                CustomerId = customerId,
-                VariantId = variantId,
-                DealerId = dealerId,
-                Price = price,
-                CreatedAt = DateTime.Now,
-                Status = "Pending"
-            };
-
-            return await _quotationRepository.CreateQuotationAsync(quotation);
-        }
-
-        public async Task<Quotation?> GetQuotationAsync(int quotationId)
-        {
-            return await _quotationRepository.GetQuotationByIdAsync(quotationId);
-        }
-
-        public async Task<Quotation> ApproveQuotationAsync(int quotationId)
-        {
-            var quotation = await _quotationRepository.GetQuotationByIdAsync(quotationId);
-            if (quotation == null)
-                throw new ArgumentException("Quotation not found");
-
-            quotation.Status = "Approved";
-            return await _quotationRepository.UpdateQuotationAsync(quotation);
-        }
-
-        public async Task<Quotation> RejectQuotationAsync(int quotationId)
-        {
-            var quotation = await _quotationRepository.GetQuotationByIdAsync(quotationId);
-            if (quotation == null)
-                throw new ArgumentException("Quotation not found");
-
-            quotation.Status = "Rejected";
-            return await _quotationRepository.UpdateQuotationAsync(quotation);
-        }
-
-        public async Task<IEnumerable<Quotation>> GetPendingQuotationsAsync(int dealerId)
-        {
-            return await _quotationRepository.GetQuotationsByDealerAsync(dealerId);
-        }
-
-        // Order Management
-        public async Task<Order> CreateOrderFromQuotationAsync(int quotationId)
-        {
-            var quotation = await _quotationRepository.GetQuotationByIdAsync(quotationId);
-            if (quotation == null || quotation.Status != "Approved")
-                throw new ArgumentException("Quotation not found or not approved");
-
-            var order = new Order
-            {
-                DealerId = quotation.DealerId,
-                CustomerId = quotation.CustomerId,
-                VariantId = quotation.VariantId,
-                Status = "Pending",
-                OrderDate = DateOnly.FromDateTime(DateTime.Now)
-            };
-
             return await _orderRepository.CreateOrderAsync(order);
         }
 
@@ -172,6 +70,45 @@ namespace ASM1.Service.Services
         public async Task<IEnumerable<Order>> GetOrdersByDealerAsync(int dealerId)
         {
             return await _orderRepository.GetOrdersByDealerAsync(dealerId);
+        }
+
+        public async Task<IEnumerable<Order>> GetOrdersByCustomerAsync(int customerId)
+        {
+            return await _orderRepository.GetOrdersByCustomerAsync(customerId);
+        }
+
+        public async Task<IEnumerable<Order>> GetPendingOrdersByDealerAsync(int dealerId)
+        {
+            var allOrders = await _orderRepository.GetOrdersByDealerAsync(dealerId);
+            return allOrders.Where(o => o.Status == "Pending");
+        }
+
+        public async Task<Order> ConfirmOrderAsync(int orderId, string dealerNotes = "")
+        {
+            var order = await _orderRepository.GetOrderByIdAsync(orderId);
+            if (order == null)
+                throw new ArgumentException("Order not found");
+
+            if (order.Status != "Pending")
+                throw new InvalidOperationException("Order is not in pending status");
+
+            order.Status = "Confirmed";
+            // Note: You might want to add a DealerNotes field to Order model
+            return await _orderRepository.UpdateOrderAsync(order);
+        }
+
+        public async Task<Order> RejectOrderAsync(int orderId, string rejectionReason)
+        {
+            var order = await _orderRepository.GetOrderByIdAsync(orderId);
+            if (order == null)
+                throw new ArgumentException("Order not found");
+
+            if (order.Status != "Pending")
+                throw new InvalidOperationException("Order is not in pending status");
+
+            order.Status = "Rejected";
+            // Note: You might want to add a RejectionReason field to Order model
+            return await _orderRepository.UpdateOrderAsync(order);
         }
 
         // Sales Contract Management

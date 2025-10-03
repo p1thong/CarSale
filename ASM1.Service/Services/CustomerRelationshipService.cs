@@ -37,6 +37,11 @@ namespace ASM1.Service.Services
             return await _customerRepository.GetCustomerByIdAsync(customerId);
         }
 
+        public async Task<Customer?> GetCustomerByEmailAsync(string email)
+        {
+            return await _customerRepository.GetCustomerByEmailAsync(email);
+        }
+
         public async Task<Customer> CreateCustomerAsync(Customer customer)
         {
             return await _customerRepository.CreateCustomerAsync(customer);

@@ -9,23 +9,15 @@ namespace ASM1.Service.Services.Interfaces
         Task<Customer?> GetCustomerAsync(int customerId);
         Task<IEnumerable<Customer>> GetCustomersByDealerAsync(int dealerId);
 
-        // Quotation Management
-        Task<Quotation> CreateQuotationAsync(int customerId, int variantId, int dealerId, decimal price);
-        Task<Quotation> CreateQuotationAsync(Quotation quotation);
-        Task<Quotation?> GetQuotationAsync(int quotationId);
-        Task<Quotation?> GetQuotationByIdAsync(int quotationId);
-        Task<Quotation> ApproveQuotationAsync(int quotationId);
-        Task<Quotation> RejectQuotationAsync(int quotationId);
-        Task<IEnumerable<Quotation>> GetPendingQuotationsAsync(int dealerId);
-        Task<IEnumerable<Quotation>> GetQuotationsByDealerAsync(int dealerId);
-        Task UpdateQuotationStatusAsync(int quotationId, string status);
-
         // Order Management
-        Task<Order> CreateOrderFromQuotationAsync(int quotationId);
         Task<Order> CreateOrderAsync(Order order);
         Task<Order?> GetOrderAsync(int orderId);
         Task<Order> UpdateOrderStatusAsync(int orderId, string status);
         Task<IEnumerable<Order>> GetOrdersByDealerAsync(int dealerId);
+        Task<IEnumerable<Order>> GetOrdersByCustomerAsync(int customerId);
+        Task<IEnumerable<Order>> GetPendingOrdersByDealerAsync(int dealerId);
+        Task<Order> ConfirmOrderAsync(int orderId, string dealerNotes = "");
+        Task<Order> RejectOrderAsync(int orderId, string rejectionReason);
 
         // Sales Contract Management
         Task<SalesContract> CreateSalesContractAsync(int orderId, decimal totalAmount, string terms);

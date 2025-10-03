@@ -9,18 +9,15 @@ namespace ASM1.WebMVC.Controllers
     {
         private readonly ISalesService _salesService;
         private readonly ICustomerRelationshipService _customerService;
-        private readonly IQuotationRepository _quotationRepository;
         private readonly IOrderRepository _orderRepository;
 
         public CustomerController(
             ISalesService salesService,
             ICustomerRelationshipService customerService,
-            IQuotationRepository quotationRepository,
             IOrderRepository orderRepository)
         {
             _salesService = salesService;
             _customerService = customerService;
-            _quotationRepository = quotationRepository;
             _orderRepository = orderRepository;
         }
 
@@ -44,14 +41,13 @@ namespace ASM1.WebMVC.Controllers
                 }
 
                 // Get customer stats
-                var quotations = await _quotationRepository.GetQuotationsByCustomerAsync(customerId.Value);
                 var orders = await _orderRepository.GetOrdersByCustomerAsync(customerId.Value);
 
                 ViewBag.Customer = customer;
-                ViewBag.QuotationsCount = quotations.Count();
                 ViewBag.OrdersCount = orders.Count();
-                ViewBag.PendingQuotationsCount = quotations.Count(q => q.Status == "Pending");
-                ViewBag.ApprovedQuotationsCount = quotations.Count(q => q.Status == "Approved");
+                ViewBag.PendingOrdersCount = orders.Count(o => o.Status == "Pending");
+                ViewBag.ConfirmedOrdersCount = orders.Count(o => o.Status == "Confirmed");
+                ViewBag.CompletedOrdersCount = orders.Count(o => o.Status == "Completed");
 
                 return View();
             }
@@ -59,28 +55,6 @@ namespace ASM1.WebMVC.Controllers
             {
                 TempData["Error"] = $"Error loading customer portal: {ex.Message}";
                 return RedirectToAction("Index", "Home");
-            }
-        }
-
-        // Customer Quotations
-        public async Task<IActionResult> MyQuotations()
-        {
-            var customerId = GetCurrentCustomerId();
-            if (customerId == null)
-            {
-                TempData["Error"] = "Please login to view your quotations.";
-                return RedirectToAction("Login", "Auth");
-            }
-
-            try
-            {
-                var quotations = await _quotationRepository.GetQuotationsByCustomerAsync(customerId.Value);
-                return View(quotations);
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"Error loading quotations: {ex.Message}";
-                return View(Enumerable.Empty<Quotation>());
             }
         }
 
@@ -103,80 +77,6 @@ namespace ASM1.WebMVC.Controllers
             {
                 TempData["Error"] = $"Error loading orders: {ex.Message}";
                 return View(Enumerable.Empty<Order>());
-            }
-        }
-
-        // View Quotation Details
-        public async Task<IActionResult> QuotationDetails(int id)
-        {
-            var customerId = GetCurrentCustomerId();
-            if (customerId == null)
-            {
-                TempData["Error"] = "Please login to view quotation details.";
-                return RedirectToAction("Login", "Auth");
-            }
-
-            try
-            {
-                var quotation = await _salesService.GetQuotationAsync(id);
-                if (quotation == null || quotation.CustomerId != customerId)
-                {
-                    TempData["Error"] = "Quotation not found or access denied.";
-                    return RedirectToAction(nameof(MyQuotations));
-                }
-
-                return View(quotation);
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"Error loading quotation details: {ex.Message}";
-                return RedirectToAction(nameof(MyQuotations));
-            }
-        }
-
-        // Accept Quotation (Customer accepts the quotation price)
-        [HttpPost]
-        public async Task<IActionResult> AcceptQuotation(int quotationId)
-        {
-            var customerId = GetCurrentCustomerId();
-            if (customerId == null)
-            {
-                return Json(new { success = false, message = "Please login to accept quotation." });
-            }
-
-            try
-            {
-                var quotation = await _salesService.GetQuotationAsync(quotationId);
-                if (quotation == null || quotation.CustomerId != customerId)
-                {
-                    return Json(new { success = false, message = "Quotation not found or access denied." });
-                }
-
-                if (quotation.Status != "Approved")
-                {
-                    return Json(new { success = false, message = "Only approved quotations can be accepted." });
-                }
-
-                // Create order from quotation
-                var order = new Order
-                {
-                    CustomerId = customerId.Value,
-                    VariantId = quotation.VariantId,
-                    DealerId = quotation.DealerId,
-                    OrderDate = DateOnly.FromDateTime(DateTime.Now),
-                    Status = "Pending"
-                };
-
-                await _salesService.CreateOrderAsync(order);
-
-                // Update quotation status
-                await _salesService.UpdateQuotationStatusAsync(quotationId, "Accepted");
-
-                return Json(new { success = true, message = "Quotation accepted and order created successfully!" });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
             }
         }
 

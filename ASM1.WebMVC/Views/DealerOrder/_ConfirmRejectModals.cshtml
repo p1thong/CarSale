@@ -1,0 +1,106 @@
+<!-- Confirm Order Modal -->
+<div class="modal fade" id="confirmOrderModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-check me-2"></i>
+                    Xác nhận đơn hàng
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="@Url.Action("ConfirmOrder", "DealerOrder")">
+                <div class="modal-body">
+                    <input type="hidden" id="confirmOrderId" name="orderId" />
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Khách hàng:</strong> <span id="confirmCustomerName"></span><br>
+                        <strong>Xe:</strong> <span id="confirmVehicleName"></span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="dealerNotes" class="form-label">Ghi chú từ dealer (tùy chọn)</label>
+                        <textarea class="form-control" 
+                                  id="dealerNotes" 
+                                  name="dealerNotes" 
+                                  rows="3" 
+                                  placeholder="Nhập ghi chú cho khách hàng..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check me-2"></i>
+                        Xác nhận đơn hàng
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Order Modal -->
+<div class="modal fade" id="rejectOrderModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-times me-2"></i>
+                    Từ chối đơn hàng
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="@Url.Action("RejectOrder", "DealerOrder")">
+                <div class="modal-body">
+                    <input type="hidden" id="rejectOrderId" name="orderId" />
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Khách hàng:</strong> <span id="rejectCustomerName"></span><br>
+                        <strong>Xe:</strong> <span id="rejectVehicleName"></span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="rejectionReason" class="form-label">
+                            Lý do từ chối <span class="text-danger">*</span>
+                        </label>
+                        <textarea class="form-control" 
+                                  id="rejectionReason" 
+                                  name="rejectionReason" 
+                                  rows="3" 
+                                  placeholder="Nhập lý do từ chối đơn hàng..." 
+                                  required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-times me-2"></i>
+                        Từ chối đơn hàng
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmOrder(orderId, customerName, vehicleName) {
+    document.getElementById('confirmOrderId').value = orderId;
+    document.getElementById('confirmCustomerName').textContent = customerName;
+    document.getElementById('confirmVehicleName').textContent = vehicleName;
+    
+    var modal = new bootstrap.Modal(document.getElementById('confirmOrderModal'));
+    modal.show();
+}
+
+function rejectOrder(orderId, customerName, vehicleName) {
+    document.getElementById('rejectOrderId').value = orderId;
+    document.getElementById('rejectCustomerName').textContent = customerName;
+    document.getElementById('rejectVehicleName').textContent = vehicleName;
+    
+    var modal = new bootstrap.Modal(document.getElementById('rejectOrderModal'));
+    modal.show();
+}
+</script>

@@ -1,0 +1,83 @@
+@{
+    ViewData["Title"] = "Fix Database Issues";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-tools"></i> Database Maintenance</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <strong>Thông tin:</strong> Trang này dùng để fix các vấn đề database, đặc biệt là Identity columns.
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6>Fix Identity Columns Issue:</h6>
+                        <p class="text-muted">
+                            Lỗi: <code>Cannot insert the value NULL into column 'paymentId'</code><br>
+                            Nguyên nhân: Database không có Identity column được cấu hình đúng.
+                        </p>
+                        <button type="button" class="btn btn-primary" onclick="fixIdentityColumns()">
+                            <i class="fas fa-wrench"></i> Fix Identity Columns
+                        </button>
+                    </div>
+                    
+                    <div id="result" class="mt-3" style="display: none;">
+                        <div class="alert" id="resultAlert">
+                            <span id="resultMessage"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function fixIdentityColumns() {
+    const btn = event.target;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
+    
+    fetch('/Sales/FixIdentityColumns', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        const resultDiv = document.getElementById('result');
+        const resultAlert = document.getElementById('resultAlert');
+        const resultMessage = document.getElementById('resultMessage');
+        
+        if (data.success) {
+            resultAlert.className = 'alert alert-success';
+            resultMessage.innerHTML = '<i class="fas fa-check"></i> ' + data.message;
+        } else {
+            resultAlert.className = 'alert alert-danger';
+            resultMessage.innerHTML = '<i class="fas fa-times"></i> Lỗi: ' + data.message;
+        }
+        
+        resultDiv.style.display = 'block';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-wrench"></i> Fix Identity Columns';
+    })
+    .catch(error => {
+        const resultDiv = document.getElementById('result');
+        const resultAlert = document.getElementById('resultAlert');
+        const resultMessage = document.getElementById('resultMessage');
+        
+        resultAlert.className = 'alert alert-danger';
+        resultMessage.innerHTML = '<i class="fas fa-times"></i> Lỗi: ' + error.message;
+        resultDiv.style.display = 'block';
+        
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-wrench"></i> Fix Identity Columns';
+    });
+}
+</script>

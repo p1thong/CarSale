@@ -1,0 +1,108 @@
+@model IEnumerable<Order>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Mã đơn</th>
+                        <th>Ngày đặt</th>
+                        <th>Khách hàng</th>
+                        <th>Xe</th>
+                        <th>Giá trị</th>
+                        <th>Trạng thái</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in Model.OrderByDescending(o => o.OrderDate))
+                    {
+                        <tr>
+                            <td>
+                                <strong class="text-primary">#@order.OrderId</strong>
+                            </td>
+                            <td>
+                                @if (order.OrderDate.HasValue)
+                                {
+                                    @order.OrderDate.Value.ToString("dd/MM/yyyy")<br>
+                                    <small class="text-muted">@order.OrderDate.Value.ToString("dd/MM/yyyy")</small>
+                                }
+                            </td>
+                            <td>
+                                <div>
+                                    <strong>@order.Customer?.FullName</strong><br>
+                                    <small class="text-muted">@order.Customer?.Email</small><br>
+                                    <small class="text-muted">@order.Customer?.Phone</small>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    @if (!string.IsNullOrEmpty(order.Variant?.VehicleModel?.ImageUrl))
+                                    {
+                                        <img src="@order.Variant.VehicleModel.ImageUrl" 
+                                             alt="@order.Variant.VehicleModel.ModelName" 
+                                             class="me-3 rounded" 
+                                             style="width: 60px; height: 40px; object-fit: cover;">
+                                    }
+                                    else
+                                    {
+                                        <div class="me-3 bg-light d-flex align-items-center justify-content-center rounded" 
+                                             style="width: 60px; height: 40px;">
+                                            <i class="fas fa-car text-muted"></i>
+                                        </div>
+                                    }
+                                    <div>
+                                        <div class="fw-bold">@order.Variant?.VehicleModel?.ModelName</div>
+                                        <small class="text-muted">
+                                            @order.Variant?.Version (@order.Variant?.Color)
+                                        </small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="fw-bold text-success">
+                                    @(order.Variant?.Price?.ToString("C0"))
+                                </span>
+                            </td>
+                            <td>
+                                @switch (order.Status)
+                                {
+                                    case "Pending":
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-clock me-1"></i>Chờ xác nhận
+                                        </span>
+                                        break;
+                                    case "Confirmed":
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check me-1"></i>Đã xác nhận
+                                        </span>
+                                        break;
+                                    case "Rejected":
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-times me-1"></i>Đã từ chối
+                                        </span>
+                                        break;
+                                    case "Completed":
+                                        <span class="badge bg-info">
+                                            <i class="fas fa-flag-checkered me-1"></i>Hoàn thành
+                                        </span>
+                                        break;
+                                    default:
+                                        <span class="badge bg-secondary">@order.Status</span>
+                                        break;
+                                }
+                            </td>
+                            <td>
+                                <a href="@Url.Action("OrderDetail", "DealerOrder", new { orderId = order.OrderId })" 
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-eye"></i> Chi tiết
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

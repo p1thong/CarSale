@@ -80,7 +80,7 @@ public partial class CarSalesDbContext : DbContext
 
             entity.ToTable("Dealer");
 
-            entity.Property(e => e.DealerId).ValueGeneratedNever().HasColumnName("dealerId");
+            entity.Property(e => e.DealerId).ValueGeneratedOnAdd().HasColumnName("dealerId");
             entity.Property(e => e.Email).HasMaxLength(100).IsUnicode(false).HasColumnName("email");
             entity
                 .Property(e => e.FullName)
@@ -104,7 +104,7 @@ public partial class CarSalesDbContext : DbContext
 
             entity
                 .Property(e => e.DealerContractId)
-                .ValueGeneratedNever()
+                .ValueGeneratedOnAdd()
                 .HasColumnName("dealerContractId");
             entity
                 .Property(e => e.CreditLimit)
@@ -253,7 +253,7 @@ public partial class CarSalesDbContext : DbContext
 
             entity.ToTable("Promotion");
 
-            entity.Property(e => e.PromotionId).ValueGeneratedNever().HasColumnName("promotionId");
+            entity.Property(e => e.PromotionId).ValueGeneratedOnAdd().HasColumnName("promotionId");
             entity
                 .Property(e => e.DiscountAmount)
                 .HasColumnType("decimal(12, 2)")
@@ -322,10 +322,11 @@ public partial class CarSalesDbContext : DbContext
 
             entity
                 .Property(e => e.SaleContractId)
-                .ValueGeneratedNever()
+                .ValueGeneratedOnAdd()
                 .HasColumnName("saleContractId");
             entity.Property(e => e.OrderId).HasColumnName("orderId");
             entity.Property(e => e.SignedDate).HasColumnName("signedDate");
+            entity.Property(e => e.TotalAmount).HasColumnType("decimal(12, 2)").HasColumnName("totalAmount");
 
             entity
                 .HasOne(d => d.Order)
@@ -372,7 +373,7 @@ public partial class CarSalesDbContext : DbContext
 
             entity.ToTable("User");
 
-            entity.Property(e => e.UserId).ValueGeneratedNever().HasColumnName("userId");
+            entity.Property(e => e.UserId).ValueGeneratedOnAdd().HasColumnName("userId");
             entity.Property(e => e.DealerId).HasColumnName("dealerId");
             entity.Property(e => e.Email).HasMaxLength(100).IsUnicode(false).HasColumnName("email");
             entity
@@ -439,7 +440,7 @@ public partial class CarSalesDbContext : DbContext
 
             entity.ToTable("VehicleVariant");
 
-            entity.Property(e => e.VariantId).ValueGeneratedNever().HasColumnName("variantId");
+            entity.Property(e => e.VariantId).ValueGeneratedOnAdd().HasColumnName("variantId");
             entity.Property(e => e.Color).HasMaxLength(50).IsUnicode(false).HasColumnName("color");
             entity.Property(e => e.Price).HasColumnType("decimal(12, 2)").HasColumnName("price");
             entity.Property(e => e.ProductYear).HasColumnName("productYear");
@@ -449,6 +450,7 @@ public partial class CarSalesDbContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("version");
+            entity.Property(e => e.Quantity).HasColumnName("Quantity");
 
             entity
                 .HasOne(d => d.VehicleModel)

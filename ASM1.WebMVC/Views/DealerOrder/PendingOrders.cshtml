@@ -1,0 +1,265 @@
+@model IEnumerable<Order>
+@{
+    ViewData["Title"] = "Đơn hàng chờ xác nhận";
+}
+
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h2 class="mb-0">
+            <i class="fas fa-clock text-warning me-2"></i>
+            Đơn hàng chờ xác nhận
+        </h2>
+        <div>
+            <a href="@Url.Action("AllOrders", "DealerOrder")" class="btn btn-outline-primary">
+                <i class="fas fa-list me-2"></i>
+                Tất cả đơn hàng
+            </a>
+            <span class="badge bg-warning fs-6 ms-2">@Model.Count() đơn</span>
+        </div>
+    </div>
+
+    @if (Model.Any())
+    {
+        <!-- Danh sách đơn hàng -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Cần xử lý ngay (@Model.Count() đơn hàng)
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Mã đơn</th>
+                                <th>Ngày đặt</th>
+                                <th>Khách hàng</th>
+                                <th>Xe</th>
+                                <th>Giá trị</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in Model.OrderByDescending(o => o.OrderDate))
+                            {
+                                <tr>
+                                    <td>
+                                        <strong class="text-primary">#@order.OrderId</strong>
+                                    </td>
+                                    <td>
+                                        @if (order.OrderDate.HasValue)
+                                        {
+                                            @order.OrderDate.Value.ToString("dd/MM/yyyy")<br>
+                                            <small class="text-muted">@order.OrderDate.Value.ToString("dd/MM/yyyy")</small>
+                                        }
+                                        <br>
+                                        @{
+                                            var daysSince = order.OrderDate.HasValue 
+                                                ? (DateTime.Now.Date - order.OrderDate.Value.ToDateTime(TimeOnly.MinValue).Date).Days 
+                                                : 0;
+                                        }
+                                        @if (daysSince == 0)
+                                        {
+                                            <span class="badge bg-info">Hôm nay</span>
+                                        }
+                                        else if (daysSince == 1)
+                                        {
+                                            <span class="badge bg-warning">Hôm qua</span>
+                                        }
+                                        else if (daysSince > 1)
+                                        {
+                                            <span class="badge bg-danger">@daysSince ngày trước</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong>@order.Customer?.FullName</strong><br>
+                                            <small class="text-muted">@order.Customer?.Email</small><br>
+                                            <small class="text-muted">@order.Customer?.Phone</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            @if (!string.IsNullOrEmpty(order.Variant?.VehicleModel?.ImageUrl))
+                                            {
+                                                <img src="@order.Variant.VehicleModel.ImageUrl" 
+                                                     alt="@order.Variant.VehicleModel.ModelName" 
+                                                     class="me-3 rounded" 
+                                                     style="width: 60px; height: 40px; object-fit: cover;">
+                                            }
+                                            else
+                                            {
+                                                <div class="me-3 bg-light d-flex align-items-center justify-content-center rounded" 
+                                                     style="width: 60px; height: 40px;">
+                                                    <i class="fas fa-car text-muted"></i>
+                                                </div>
+                                            }
+                                            <div>
+                                                <div class="fw-bold">@order.Variant?.VehicleModel?.ModelName</div>
+                                                <small class="text-muted">
+                                                    @order.Variant?.Version (@order.Variant?.Color)
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold text-success">
+                                            @(order.Variant?.Price?.ToString("C0"))
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="@Url.Action("OrderDetail", "DealerOrder", new { orderId = order.OrderId })" 
+                                               class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-eye"></i> Chi tiết
+                                            </a>
+                                            
+                                            <!-- Quick Confirm Button -->
+                                            <button type="button" 
+                                                    class="btn btn-success btn-sm" 
+                                                    onclick="confirmOrder(@order.OrderId, '@order.Customer?.FullName', '@order.Variant?.VehicleModel?.ModelName')">
+                                                <i class="fas fa-check"></i> Xác nhận
+                                            </button>
+                                            
+                                            <!-- Quick Reject Button -->
+                                            <button type="button" 
+                                                    class="btn btn-danger btn-sm" 
+                                                    onclick="rejectOrder(@order.OrderId, '@order.Customer?.FullName', '@order.Variant?.VehicleModel?.ModelName')">
+                                                <i class="fas fa-times"></i> Từ chối
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Empty state -->
+        <div class="card shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                <h4 class="text-muted">Tuyệt vời! Không có đơn hàng nào chờ xác nhận</h4>
+                <p class="text-muted mb-4">Tất cả đơn hàng đã được xử lý xong.</p>
+                <a href="@Url.Action("AllOrders", "DealerOrder")" class="btn btn-primary">
+                    <i class="fas fa-list me-2"></i>
+                    Xem tất cả đơn hàng
+                </a>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Confirm Order Modal -->
+<div class="modal fade" id="confirmOrderModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-check me-2"></i>
+                    Xác nhận đơn hàng
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="@Url.Action("ConfirmOrder", "DealerOrder")">
+                <div class="modal-body">
+                    <input type="hidden" id="confirmOrderId" name="orderId" />
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Khách hàng:</strong> <span id="confirmCustomerName"></span><br>
+                        <strong>Xe:</strong> <span id="confirmVehicleName"></span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="dealerNotes" class="form-label">Ghi chú từ dealer (tùy chọn)</label>
+                        <textarea class="form-control" 
+                                  id="dealerNotes" 
+                                  name="dealerNotes" 
+                                  rows="3" 
+                                  placeholder="Nhập ghi chú cho khách hàng..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check me-2"></i>
+                        Xác nhận đơn hàng
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Order Modal -->
+<div class="modal fade" id="rejectOrderModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-times me-2"></i>
+                    Từ chối đơn hàng
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="@Url.Action("RejectOrder", "DealerOrder")">
+                <div class="modal-body">
+                    <input type="hidden" id="rejectOrderId" name="orderId" />
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Khách hàng:</strong> <span id="rejectCustomerName"></span><br>
+                        <strong>Xe:</strong> <span id="rejectVehicleName"></span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="rejectionReason" class="form-label">
+                            Lý do từ chối <span class="text-danger">*</span>
+                        </label>
+                        <textarea class="form-control" 
+                                  id="rejectionReason" 
+                                  name="rejectionReason" 
+                                  rows="3" 
+                                  placeholder="Nhập lý do từ chối đơn hàng..." 
+                                  required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-times me-2"></i>
+                        Từ chối đơn hàng
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmOrder(orderId, customerName, vehicleName) {
+    document.getElementById('confirmOrderId').value = orderId;
+    document.getElementById('confirmCustomerName').textContent = customerName;
+    document.getElementById('confirmVehicleName').textContent = vehicleName;
+    
+    var modal = new bootstrap.Modal(document.getElementById('confirmOrderModal'));
+    modal.show();
+}
+
+function rejectOrder(orderId, customerName, vehicleName) {
+    document.getElementById('rejectOrderId').value = orderId;
+    document.getElementById('rejectCustomerName').textContent = customerName;
+    document.getElementById('rejectVehicleName').textContent = vehicleName;
+    
+    var modal = new bootstrap.Modal(document.getElementById('rejectOrderModal'));
+    modal.show();
+}
+</script>
