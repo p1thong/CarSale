@@ -3,100 +3,277 @@
     ViewData["Title"] = "Danh sách xe";
 }
 
-<div class="container">
+<div class="container-fluid custom-container py-5">
     <div class="row">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1 class="display-5">
-                    <i class="fas fa-car text-primary"></i> Danh sách xe có sẵn
-                </h1>
-                <div class="text-muted">
-                    <i class="fas fa-info-circle"></i> Tổng cộng: @Model.Count() xe
-                </div>
-            </div>
+        <div class="col-12 text-center mb-5">
+            <h1 class="display-4 fw-bold mb-3">
+                Danh sách xe có sẵn
+            </h1>
+            <p class="text-muted fs-5">Khám phá những mẫu xe hot nhất</p>
+            <span class="badge bg-dark fs-6 px-3 py-2">
+                Tổng cộng: @Model.Count() xe
+            </span>
+        </div>
 
-            @if (!Model.Any())
-            {
-                <div class="alert alert-info text-center">
-                    <h4><i class="fas fa-exclamation-circle"></i> Chưa có xe nào</h4>
-                    <p>Hiện tại chưa có xe nào trong hệ thống. Vui lòng quay lại sau.</p>
-                </div>
-            }
-            else
-            {
-                <div class="row">
-                    @foreach (var vehicle in Model)
-                    {
-                        <div class="col-lg-4 col-md-6 mb-4">
-                            <div class="card h-100 shadow-sm hover-shadow">
-                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
-                                    @if (!string.IsNullOrEmpty(vehicle.VehicleModel?.ImageUrl))
-                                    {
-                                        <img src="@vehicle.VehicleModel.ImageUrl" alt="@vehicle.VehicleModel?.Name" class="img-fluid" style="max-height: 180px; object-fit: cover;">
-                                    }
-                                    else
-                                    {
-                                        <i class="fas fa-car fa-5x text-muted"></i>
-                                    }
+        @if (!Model.Any())
+        {
+            <div class="alert alert-info text-center">
+                <h4><i class="fas fa-exclamation-circle"></i> Chưa có xe nào</h4>
+                <p>Hiện tại chưa có xe nào trong hệ thống. Vui lòng quay lại sau.</p>
+            </div>
+        }
+        else
+        {
+            <div class="row g-4">
+                @foreach (var vehicle in Model)
+                {
+                    <div class="col-xl-3 col-lg-4 col-md-6 d-flex">
+                        <div class="car-card h-100 flex-fill animate-card">
+                            <!-- Neon border -->
+                            <svg class="neon-border" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+                                <defs>
+                                    <linearGradient id="neonGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stop-color="#ff0080" />
+                                        <stop offset="25%" stop-color="#ff8c00" />
+                                        <stop offset="50%" stop-color="#40e0d0" />
+                                        <stop offset="75%" stop-color="#00ff95" />
+                                        <stop offset="100%" stop-color="#ff0080" />
+                                    </linearGradient>
+                                    <filter id="neonGlow">
+                                        <feGaussianBlur stdDeviation="3" result="blur" />
+                                        <feMerge>
+                                            <feMergeNode in="blur" />
+                                            <feMergeNode in="SourceGraphic" />
+                                        </feMerge>
+                                    </filter>
+                                </defs>
+                                <rect x="6" y="6" width="988" height="988" rx="28" ry="28"
+                                      fill="none"
+                                      stroke="url(#neonGrad)"
+                                      stroke-width="3"
+                                      filter="url(#neonGlow)" />
+                            </svg>
+
+                            <div class="car-img">
+                                @if (!string.IsNullOrEmpty(vehicle.VehicleModel?.ImageUrl))
+                                {
+                                    <img src="@vehicle.VehicleModel.ImageUrl"
+                                         alt="@vehicle.VehicleModel?.Name"
+                                         class="img-fluid car-photo" loading="lazy" />
+                                }
+                                else
+                                {
+                                    <div class="skeleton-loader"></div>
+                                }
+                                <div class="shine"></div>
+                            </div>
+
+                            <hr class="car-divider" />
+
+                            <div class="car-body d-flex flex-column">
+                                <h5 class="car-title mb-2">
+                                    @vehicle.VehicleModel?.Name
+                                    <small class="text-muted">@vehicle.Version</small>
+                                </h5>
+                                <div class="car-meta text-muted mb-3">
+                                    <div><strong>Hãng:</strong> @vehicle.VehicleModel?.Manufacturer?.Name</div>
+                                    <div><strong>Loại:</strong> @vehicle.VehicleModel?.Category</div>
+                                    <div><strong>Màu:</strong> <span class="badge bg-secondary">@vehicle.Color</span></div>
+                                    <div><strong>Năm sản xuất:</strong> @vehicle.ProductYear</div>
                                 </div>
-                                <div class="card-body d-flex flex-column">
-                                    <h5 class="card-title text-primary">
-                                        @vehicle.VehicleModel?.Name
-                                        <small class="text-muted">@vehicle.Version</small>
-                                    </h5>
-                                    <p class="card-text">
-                                        <strong>Hãng:</strong> @vehicle.VehicleModel?.Manufacturer?.Name<br>
-                                        <strong>Loại:</strong> @vehicle.VehicleModel?.Category<br>
-                                        <strong>Màu:</strong> <span class="badge bg-secondary">@vehicle.Color</span><br>
-                                        <strong>Năm sản xuất:</strong> @vehicle.ProductYear
-                                    </p>
-                                    <div class="mt-auto">
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <h4 class="text-success mb-0">
-                                                @string.Format("{0:N0}", vehicle.Price) VND
-                                            </h4>
-                                        </div>
-                                        <div class="row g-1">
-                                            <div class="col-4">
-                                                <a href="@Url.Action("VehicleDetail", "Home", new { id = vehicle.VariantId })" 
-                                                   class="btn btn-outline-primary btn-sm w-100">
-                                                    <i class="fas fa-eye"></i> Chi tiết
-                                                </a>
-                                            </div>
-                                            <div class="col-4">
-                                                <a href="@Url.Action("ScheduleTestDrive", "CustomerService", new { variantId = vehicle.VariantId })" 
-                                                   class="btn btn-success btn-sm w-100">
-                                                    <i class="fas fa-car"></i> Lái thử
-                                                </a>
-                                            </div>
-                                            <div class="col-4">
-                                                <a href="@Url.Action("CreateOrder", "Sales", new { variantId = vehicle.VariantId })" 
-                                                   class="btn btn-primary btn-sm w-100">
-                                                    <i class="fas fa-cart-plus"></i> Đặt hàng
-                                                </a>
-                                            </div>
-                                        </div>
+
+                                <div class="mt-auto">
+                                    <div class="car-price">
+                                        <span class="currency">$</span>@string.Format("{0:N0}", vehicle.Price)
+                                    </div>
+
+                                    <div class="d-flex gap-2 mt-3">
+                                        <a href="@Url.Action("VehicleDetail", "Home", new { id = vehicle.VariantId })"
+                                           class="btn btn-outline-dark btn-sm flex-fill btn-glow">
+                                            <i class="fas fa-eye"></i> Chi tiết
+                                        </a>
+                                        <a href="@Url.Action("ScheduleTestDrive", "CustomerService", new { variantId = vehicle.VariantId })"
+                                           class="btn btn-success btn-sm flex-fill btn-glow">
+                                            <i class="fas fa-car"></i> Lái thử
+                                        </a>
+                                        <a href="@Url.Action("CreateOrder", "Sales", new { variantId = vehicle.VariantId })"
+                                           class="btn btn-primary btn-sm flex-fill btn-glow">
+                                            <i class="fas fa-cart-plus"></i> Đặt hàng
+                                        </a>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    }
-                </div>
-            }
-        </div>
+                    </div>
+                }
+            </div>
+        }
     </div>
 </div>
 
 <style>
-    .hover-shadow {
-        transition: box-shadow 0.3s ease-in-out;
+    body {
+        background: #fff;
+        position: relative;
     }
-    .hover-shadow:hover {
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-        transform: translateY(-2px);
-        transition: all 0.3s ease-in-out;
+
+        /* Spotlight background */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at center, rgba(255,255,255,1) 60%, rgba(0,0,0,0.05) 95%), linear-gradient(to right, rgba(0,0,0,0.08) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.08) 100%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+    .custom-container {
+        max-width: 1800px;
     }
-    .card-img-top {
-        border-radius: 0.375rem 0.375rem 0 0;
+
+    .car-card {
+        position: relative;
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+        overflow: hidden;
+        transition: transform .35s ease, box-shadow .35s ease;
+    }
+
+        .car-card:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 20px 45px rgba(0,0,0,0.15), 0 0 20px rgba(0, 255, 200, 0.3);
+        }
+
+    .neon-border {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 2;
+    }
+
+    .car-img {
+        height: 240px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fff;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .car-photo {
+        max-height: 240px;
+        object-fit: contain;
+        transition: transform .5s ease;
+    }
+
+    .car-card:hover .car-photo {
+        transform: scale(1.05);
+    }
+
+    .shine {
+        position: absolute;
+        top: -100%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(120deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.7) 50%, rgba(255,255,255,0) 100%);
+        transform: rotate(25deg);
+        opacity: 0;
+        z-index: 3;
+    }
+
+    .car-card:hover .shine {
+        animation: shineMove 1.2s forwards;
+        opacity: 1;
+    }
+
+    @@keyframes shineMove {
+        from {
+            top: -100%;
+            left: -50%;
+        }
+
+        to {
+            top: 100%;
+            left: 100%;
+        }
+    }
+
+    .car-divider {
+        margin: 0;
+        border: 0;
+        height: 1px;
+        background: linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.15) 40%, rgba(0,0,0,.15) 60%, rgba(0,0,0,0) 100%);
+    }
+
+    .car-body {
+        padding: 1.2rem;
+    }
+
+    .car-title {
+        font-weight: 800;
+    }
+
+    .car-meta div + div {
+        margin-top: .2rem;
+    }
+
+    .car-price {
+        display: inline-flex;
+        align-items: baseline;
+        font-size: 1.6rem;
+        font-weight: 900;
+        color: #15803d;
+        background: #eaf7ef;
+        border: 1px solid #cce8d6;
+        border-radius: 12px;
+        padding: .4rem .8rem;
+    }
+
+        .car-price .currency {
+            font-size: 1rem;
+            transform: translateY(-2px);
+            margin-right: 2px;
+        }
+
+    .btn-glow:hover {
+        background: linear-gradient(90deg, #ff0080, #ff8c00, #40e0d0, #00ff95);
+        color: #fff !important;
+        transform: scale(1.05);
+        box-shadow: 0 0 15px rgba(255, 0, 128, 0.5);
+    }
+
+    .animate-card {
+        opacity: 0;
+        transform: translateY(30px);
+        animation: fadeInUp 0.8s forwards;
+    }
+
+        .animate-card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .animate-card:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .animate-card:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 </style>

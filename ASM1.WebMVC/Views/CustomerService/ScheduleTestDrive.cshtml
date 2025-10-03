@@ -21,7 +21,7 @@
                     </div>
 
                     <form asp-action="ScheduleTestDrive" method="post" id="testDriveForm">
-                        
+
                         <!-- Customer Selection -->
                         <div class="card mb-4">
                             <div class="card-header">
@@ -41,7 +41,9 @@
                                                 <small class="text-muted">@currentCustomer.Email</small>
                                                 @if (!string.IsNullOrEmpty(currentCustomer.Phone))
                                                 {
-                                                    <br><small class="text-muted">@currentCustomer.Phone</small>
+                                                    <br>
+                                        
+                                                    <small class="text-muted">@currentCustomer.Phone</small>
                                                 }
                                             </div>
                                             <input type="hidden" name="customerId" value="@currentCustomer.CustomerId" />
@@ -72,7 +74,7 @@
                                 }
                             </div>
                         </div>
-                        
+
                         <div class="row">
                             <div class="col-md-8">
                                 <div class="card">
@@ -228,14 +230,14 @@
                     <li>Must possess a valid driver's license</li>
                     <li>Must provide identification</li>
                 </ul>
-                
+
                 <h6>2. Vehicle Usage</h6>
                 <ul>
                     <li>Vehicle must be returned in the same condition</li>
                     <li>No smoking or eating in the vehicle</li>
                     <li>Maximum speed limits must be observed</li>
                 </ul>
-                
+
                 <h6>3. Insurance & Liability</h6>
                 <ul>
                     <li>Insurance coverage is provided during test drive</li>
@@ -255,22 +257,22 @@
         $(document).ready(function() {
             // Load vehicle variants
             loadVehicleVariants();
-            
+
             // Set minimum date to tomorrow
             let tomorrow = new Date();
             tomorrow.setDate(tomorrow.getDate() + 1);
             $('#scheduledDate').attr('min', tomorrow.toISOString().split('T')[0]);
-            
+
             // Preselect variant if specified
             @if (ViewBag.PreselectedVariantId != null)
             {
-                <text>
-                setTimeout(function() {
-                    $('#variantId').val('@ViewBag.PreselectedVariantId').trigger('change');
-                }, 500);
-                </text>
+                    <text>
+                    setTimeout(function() {
+                        $('#variantId').val('@ViewBag.PreselectedVariantId').trigger('change');
+                    }, 500);
+                    </text>
             }
-            
+
             // Vehicle selection change handler
             $('#variantId').on('change', function() {
                 var variantId = $(this).val();
@@ -280,7 +282,7 @@
                     resetVehiclePreview();
                 }
             });
-            
+
             // Form validation
             $('#testDriveForm').on('submit', function(e) {
                 if (!$('#agreeTerms').is(':checked')) {
@@ -288,30 +290,30 @@
                     alert('Please agree to the terms and conditions');
                     return false;
                 }
-                
+
                 var selectedDate = new Date($('#scheduledDate').val());
                 var today = new Date();
                 today.setHours(0, 0, 0, 0);
-                
+
                 if (selectedDate <= today) {
                     e.preventDefault();
                     alert('Please select a future date for your test drive');
                     return false;
                 }
-                
+
                 // Check for time slot conflicts
                 var schedDate = $('#scheduledDate').val();
                 var schedTime = $('#scheduledTime').val();
-                
+
                 if (!schedTime) {
                     e.preventDefault();
                     alert('Please select a time slot');
                     return false;
                 }
-                
+
                 // Prevent default form submission to check for conflicts first
                 e.preventDefault();
-                
+
                 // Check for existing appointments
                 var selectedVariantId = $('#variantId').val();
                 var selectedCustomerId = $('#customerId').val();
@@ -338,7 +340,7 @@
                 });
             });
         });
-        
+
         function loadVehicleVariants() {
             $.get('/CustomerService/GetVehicleVariants')
                 .done(function(data) {
@@ -348,13 +350,14 @@
                         select.append('<option value="">Error loading vehicles</option>');
                         return;
                     }
-                    
+
                     data.forEach(function(variant) {
-                        select.append(`<option value="${variant.id}" 
-                            data-price="${variant.price}" 
+                        select.append(`<option value="${variant.id}"
+                            data-price="${variant.price}"
                             data-color="${variant.color}"
                             data-year="${variant.year}"
-                            data-category="${variant.category}">
+                            data-category="${variant.category}"
+                            data-image="${variant.imageUrl || ''}">
                             ${variant.name} (${variant.year}) - $${variant.price ? variant.price.toLocaleString() : 'Contact for price'}
                         </option>`);
                     });
@@ -364,7 +367,7 @@
                     $('#variantId').append('<option value="">Failed to load vehicles</option>');
                 });
         }
-        
+
         function loadVehiclePreview(variantId) {
             var option = $(`#variantId option[value="${variantId}"]`);
             var name = option.text().split(' - $')[0]; // Remove price from display
@@ -372,10 +375,12 @@
             var color = option.data('color');
             var year = option.data('year');
             var category = option.data('category');
-            
+            var image = option.data('image');
+
             var preview = `
                 <div class="text-center">
-                    <i class="fas fa-car fa-3x text-primary mb-3"></i>
+                    ${image ? `<img src="${image}" alt="${name}" class="img-fluid mb-3 rounded" style="max-height:200px;object-fit:contain;">`
+                            : `<i class="fas fa-car fa-3x text-primary mb-3"></i>`}
                     <h6>${name}</h6>
                     <p class="text-muted">
                         <strong>Year:</strong> ${year}<br>
@@ -388,10 +393,10 @@
                     <small class="text-muted">Starting price</small>
                 </div>
             `;
-            
+
             $('#vehiclePreview').html(preview);
         }
-        
+
         function resetVehiclePreview() {
             $('#vehiclePreview').html(`
                 <div class="text-center text-muted">
