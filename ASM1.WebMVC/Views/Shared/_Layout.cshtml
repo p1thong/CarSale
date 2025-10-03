@@ -12,220 +12,124 @@
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">ASM1.WebMVC</a>
-                
-                <!-- Debug Info -->
-                <small class="text-muted">
-                    Session UserRole: "@Context.Session.GetString("UserRole")" | 
-                    ViewBag UserRole: "@ViewBag.UserRole" | 
-                    UserId: "@Context.Session.GetString("UserId")" |
-                    UserEmail: "@Context.Session.GetString("UserEmail")"
-                </small>
-                
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+                <a class="navbar-brand" asp-controller="Home" asp-action="Index">ASM1.WebMVC</a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
+
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
+                        <!-- Always show Home -->
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">
-                                <i class="fas fa-home"></i> Dashboard
-                            </a>
-                        </li>
-                        
-                        <!-- Main Flow 1: Sales Process -->
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-dark" href="#" role="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-shopping-cart"></i> Sales Management
-                            </a>
-                            <ul class="dropdown-menu">
-                                <li><h6 class="dropdown-header">Customer Management</h6></li>
-                                <li><a class="dropdown-item" asp-controller="Sales" asp-action="Customers">
-                                    <i class="fas fa-users"></i> Customers
-                                </a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><h6 class="dropdown-header">Sales Process</h6></li>
-                                <li><a class="dropdown-item" asp-controller="DealerOrder" asp-action="PendingOrders">
-                                    <i class="fas fa-clock"></i> Pending Orders
-                                </a></li>
-                                <li><a class="dropdown-item" asp-controller="DealerOrder" asp-action="AllOrders">
-                                    <i class="fas fa-list"></i> All Orders
-                                </a></li>
-                                <li><a class="dropdown-item" asp-controller="Sales" asp-action="SalesContracts">
-                                    <i class="fas fa-file-contract"></i> Sales Contracts
-                                </a></li>
-                            </ul>
-                        </li>
-
-                        <!-- Sales Flow System with Role-based Access -->
-                        @if (Context.Session.GetString("UserRole") == "Customer" || Context.Session.GetString("UserRole") == "Dealer")
-                        {
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle text-primary" href="#" role="button" data-bs-toggle="dropdown">
-                                    <i class="fas fa-rocket"></i> Sales Flow
-                                </a>
-                                <ul class="dropdown-menu">
-                                    @if (Context.Session.GetString("UserRole") == "Customer" || Context.Session.GetString("UserRole") == "customer")
-                                    {
-                                        <li><h6 class="dropdown-header">📋 Customer Services</h6></li>
-                                        <li><a class="dropdown-item" asp-controller="Product" asp-action="VehicleModels">
-                                            <i class="fas fa-car"></i> Browse Vehicles
-                                        </a></li>
-                                        <li><a class="dropdown-item" asp-controller="CustomerOrder" asp-action="MyOrders">
-                                            <i class="fas fa-shopping-cart"></i> My Orders
-                                        </a></li>
-                                    }
-                                    @if (Context.Session.GetString("UserRole") == "Dealer")
-                                    {
-                                        <li><h6 class="dropdown-header">🏪 Dealer Management</h6></li>
-                                        <li><a class="dropdown-item" asp-controller="DealerOrder" asp-action="PendingOrders">
-                                            <i class="fas fa-clock"></i> Pending Orders
-                                        </a></li>
-                                        <li><a class="dropdown-item" asp-controller="DealerOrder" asp-action="AllOrders">
-                                            <i class="fas fa-list"></i> All Orders
-                                        </a></li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item" asp-controller="DealerManagement" asp-action="Dashboard">
-                                            <i class="fas fa-tachometer-alt"></i> Dashboard
-                                        </a></li>
-                                        <li><a class="dropdown-item" asp-controller="DealerManagement" asp-action="Manufacturers">
-                                            <i class="fas fa-industry"></i> Manage Manufacturers
-                                        </a></li>
-                                        <li><a class="dropdown-item" asp-controller="DealerManagement" asp-action="VehicleModels">
-                                            <i class="fas fa-car"></i> Manage Models
-                                        </a></li>
-                                        <li><a class="dropdown-item" asp-controller="DealerManagement" asp-action="VehicleVariants">
-                                            <i class="fas fa-cogs"></i> Manage Variants
-                                        </a></li>
-                                    }
-                                </ul>
-                            </li>
-                        }
-                        
-                        <!-- Quick Access to Customer Orders (Always visible for testing) -->
-                        <li class="nav-item">
-                            <a class="nav-link text-info" asp-controller="CustomerOrder" asp-action="MyOrders">
-                                <i class="fas fa-shopping-cart"></i> My Orders (Test)
+                            <a class="nav-link text-dark" asp-controller="Home" asp-action="Index">
+                                <i class="fas fa-home"></i> Home
                             </a>
                         </li>
 
-                        <!-- Main Flow 2: Product & Distribution -->
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-dark" href="#" role="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-car"></i> Product Management
-                            </a>
-                            <ul class="dropdown-menu">
-                                <li><h6 class="dropdown-header">Vehicle Management</h6></li>
-                                <li><a class="dropdown-item" asp-controller="Product" asp-action="Manufacturers">
-                                    <i class="fas fa-industry"></i> Manufacturers
-                                </a></li>
-                                <li><a class="dropdown-item" asp-controller="Product" asp-action="VehicleModels">
-                                    <i class="fas fa-car"></i> Vehicle Models
-                                </a></li>
-                                <li><a class="dropdown-item" asp-controller="Product" asp-action="Inventory">
-                                    <i class="fas fa-warehouse"></i> Inventory
-                                </a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><h6 class="dropdown-header">Distribution</h6></li>
-                                <li><a class="dropdown-item" asp-controller="Product" asp-action="Distribution">
-                                    <i class="fas fa-truck"></i> Distribution
-                                </a></li>
-                            </ul>
-                        </li>
-                        
-                        <!-- Main Flow 3: Customer Service -->
-                        @if (ViewBag.UserRole == "DealerManager" || ViewBag.UserRole == "DealerStaff" || ViewBag.UserRole == "Dealer" || ViewBag.UserRole == "Admin")
-                        {
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle text-dark" href="#" role="button" data-bs-toggle="dropdown">
-                                    <i class="fas fa-users-cog"></i> Customer Service
-                                </a>
-                                <ul class="dropdown-menu">
-                                    <li><h6 class="dropdown-header">Service Management</h6></li>
-                                    <li><a class="dropdown-item" asp-controller="CustomerService" asp-action="TestDrives">
-                                        <i class="fas fa-calendar"></i> Manage Test Drives
-                                    </a></li>
-                                    <li><a class="dropdown-item" asp-controller="CustomerService" asp-action="Feedbacks">
-                                        <i class="fas fa-comments"></i> View All Feedbacks
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><h6 class="dropdown-header">Reports & Analytics</h6></li>
-                                    <li><a class="dropdown-item" asp-controller="CustomerService" asp-action="CustomerCareReport">
-                                        <i class="fas fa-chart-bar"></i> Customer Care Report
-                                    </a></li>
-                                </ul>
-                            </li>
-                        }
-
-                        <!-- Customer Portal -->
-                        <!-- Debug: Current UserRole = '@ViewBag.UserRole' -->
                         @if (ViewBag.UserRole == "Customer" || ViewBag.UserRole == "customer")
                         {
-                            <!-- Debug: User role is @ViewBag.UserRole -->
+                            <!-- Customer Menu -->
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle text-dark" href="#" role="button" data-bs-toggle="dropdown">
                                     <i class="fas fa-user-shield"></i> My Services
                                 </a>
                                 <ul class="dropdown-menu">
-                                    <li><h6 class="dropdown-header">Test Drive Services</h6></li>
-                                    <li><a class="dropdown-item" href="javascript:void(0)" onclick="window.location.href='/CustomerService/MyTestDrives'; return false;">
-                                        <i class="fas fa-calendar-check"></i> My Test Drives
-                                    </a></li>
-                                    <li><a class="dropdown-item" asp-controller="CustomerService" asp-action="ScheduleTestDrive">
-                                        <i class="fas fa-calendar-plus"></i> Schedule Test Drive
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><h6 class="dropdown-header">Customer Dashboard</h6></li>
-                                    <li><a class="dropdown-item" asp-controller="Customer" asp-action="Portal">
-                                        <i class="fas fa-tachometer-alt"></i> My Dashboard
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><h6 class="dropdown-header">My Services</h6></li>
-                                    <li><a class="dropdown-item" asp-controller="Customer" asp-action="MyOrders">
-                                        <i class="fas fa-shopping-bag"></i> My Orders
-                                    </a></li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="CustomerService" asp-action="MyTestDrives">
+                                            <i class="fas fa-calendar-check"></i> My Test Drives
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="CustomerOrder" asp-action="MyOrders">
+                                            <i class="fas fa-shopping-cart"></i> My Orders
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
+                        else if (ViewBag.UserRole == "Dealer")
+                        {
+                            <!-- Dealer Sales Management -->
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle text-dark" href="#" role="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-shopping-cart"></i> Sales Management
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="DealerManagement" asp-action="Dashboard">
+                                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Sales" asp-action="Customers">
+                                            <i class="fas fa-users"></i> Customers
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="DealerOrder" asp-action="AllOrders">
+                                            <i class="fas fa-list"></i> All Orders
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="DealerOrder" asp-action="PendingOrders">
+                                            <i class="fas fa-clock"></i> Pending Orders
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+
+                            <!-- Dealer Customer Service -->
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle text-dark" href="#" role="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-headset"></i> Customer Service
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="CustomerService" asp-action="TestDrives">
+                                            <i class="fas fa-calendar-plus"></i> Schedule Test Drives
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="CustomerService" asp-action="Feedbacks">
+                                            <i class="fas fa-comments"></i> View Feedbacks
+                                        </a>
+                                    </li>
                                 </ul>
                             </li>
                         }
                         else
                         {
-                            <!-- Default Customer Portal for other roles -->
+                            <!-- Default menus for Admin/DealerManager/DealerStaff -->
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle text-dark" href="#" role="button" data-bs-toggle="dropdown">
-                                    <i class="fas fa-user-shield"></i> Customer Portal
+                                    <i class="fas fa-car"></i> Product Management
                                 </a>
                                 <ul class="dropdown-menu">
-                                    <li><h6 class="dropdown-header">Customer Dashboard</h6></li>
-                                    <li><a class="dropdown-item" asp-controller="Customer" asp-action="Portal">
-                                        <i class="fas fa-tachometer-alt"></i> My Dashboard
+                                    <li><a class="dropdown-item" asp-controller="Product" asp-action="Manufacturers">
+                                        <i class="fas fa-industry"></i> Manufacturers
                                     </a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><h6 class="dropdown-header">Vehicle Services</h6></li>
-                                <li><a class="dropdown-item" asp-controller="EVM" asp-action="Index">
-                                    <i class="fas fa-car"></i> Browse Vehicles
-                                </a></li>
-                                <li><a class="dropdown-item" asp-controller="CustomerService" asp-action="ScheduleTestDrive">
-                                    <i class="fas fa-key"></i> Schedule Test Drive
-                                </a></li>
+                                    <li><a class="dropdown-item" asp-controller="Product" asp-action="VehicleModels">
+                                        <i class="fas fa-car"></i> Vehicle Models
+                                    </a></li>
+                                    <li><a class="dropdown-item" asp-controller="Product" asp-action="Inventory">
+                                        <i class="fas fa-warehouse"></i> Inventory
+                                    </a></li>
                                 </ul>
                             </li>
                         }
 
+                        <!-- Privacy always visible -->
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">
+                            <a class="nav-link text-dark" asp-controller="Home" asp-action="Privacy">
                                 <i class="fas fa-shield-alt"></i> Privacy
                             </a>
                         </li>
-                        
-                        <!-- Debug: Always show UserRole for testing -->
-                        <li class="nav-item">
-                            <span class="nav-link text-danger">Role: @ViewBag.UserRole</span>
-                        </li>
                     </ul>
-                    
+
                     <!-- User Menu -->
                     <ul class="navbar-nav">
                         @if (ViewBag.IsLoggedIn == true)
@@ -238,13 +142,6 @@
                                 <ul class="dropdown-menu dropdown-menu-end">
                                     <li><h6 class="dropdown-header">@ViewBag.UserName</h6></li>
                                     <li><small class="dropdown-item-text text-muted">Role: @ViewBag.UserRole</small></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="#">
-                                        <i class="fas fa-user"></i> Profile
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="#">
-                                        <i class="fas fa-cog"></i> Settings
-                                    </a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" asp-controller="Auth" asp-action="Logout">
                                         <i class="fas fa-sign-out-alt"></i> Logout
@@ -270,27 +167,21 @@
             </div>
         </nav>
     </header>
+
     <div class="container">
-        <!-- Toast Messages -->
-        @if (TempData["SuccessMessage"] != null)
+        <!-- TempData Alerts -->
+        @if (TempData["Success"] != null)
         {
             <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
-                <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                <i class="fas fa-check-circle"></i> @TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         }
-        @if (TempData["InfoMessage"] != null)
-        {
-            <div class="alert alert-info alert-dismissible fade show mt-3" role="alert">
-                <i class="fas fa-info-circle"></i> @TempData["InfoMessage"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        }
-        @if (TempData["ErrorMessage"] != null)
+        @if (TempData["Error"] != null)
         {
             <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
-                <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                <i class="fas fa-exclamation-circle"></i> @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         }
 
@@ -301,9 +192,10 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2025 - ASM1.WebMVC - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2025 - ASM1.WebMVC - <a asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
