@@ -22,15 +22,15 @@ namespace ASM1.WebMVC.Controllers
 
         // Dashboard
         [HttpGet]
-        public async Task<IActionResult> Dashboard()
+        public IActionResult Dashboard()
         {
             try
             {
                 var dealerId = GetCurrentDealerId();
                 
-                // Lấy dữ liệu cho charts
-                var topSellerVehicles = await GetTopSellerVehiclesAsync(dealerId);
-                var monthlyRevenue = await GetMonthlyRevenueAsync(dealerId);
+                // Lấy dữ liệu giả cho charts
+                var topSellerVehicles = GetFakeTopSellerVehiclesData();
+                var monthlyRevenue = GetFakeMonthlyRevenueData();
                 
                 ViewBag.TopSellerVehicles = topSellerVehicles;
                 ViewBag.MonthlyRevenue = monthlyRevenue;
@@ -391,59 +391,37 @@ namespace ASM1.WebMVC.Controllers
             return HttpContext.Session.GetInt32("DealerId") ?? 1;
         }
 
-        private async Task<List<object>> GetTopSellerVehiclesAsync(int dealerId)
+        // === FAKE DATA METHODS FOR CHARTS ===
+        
+        private List<object> GetFakeTopSellerVehiclesData()
         {
-            try
+            return new List<object>
             {
-                var orders = await _salesService.GetOrdersByDealerAsync(dealerId);
-                var topSellers = orders
-                    .Where(o => o.Status == "Delivered")
-                    .GroupBy(o => new { o.Variant.VehicleModel.Name, o.Variant.Version })
-                    .Select(g => new
-                    {
-                        VehicleName = $"{g.Key.Name} {g.Key.Version}",
-                        Count = g.Count()
-                    })
-                    .OrderByDescending(x => x.Count)
-                    .Take(5)
-                    .ToList<object>();
-
-                return topSellers;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting top seller vehicles");
-                return new List<object>();
-            }
+                new { vehicleName = "Tesla Model 3 Performance", count = 15 },
+                new { vehicleName = "VinFast VF 8 Plus", count = 12 },
+                new { vehicleName = "Tesla Model Y Long Range", count = 10 },
+                new { vehicleName = "BYD Atto 3 Extended Range", count = 8 },
+                new { vehicleName = "Tesla Model S Plaid", count = 6 },
+            };
         }
 
-        private async Task<List<object>> GetMonthlyRevenueAsync(int dealerId)
+        private List<object> GetFakeMonthlyRevenueData()
         {
-            try
+            return new List<object>
             {
-                var orders = await _salesService.GetOrdersByDealerAsync(dealerId);
-                var monthlyRevenue = orders
-                    .Where(o => o.Status == "Delivered" && o.OrderDate.HasValue)
-                    .GroupBy(o => new { 
-                        Year = o.OrderDate.Value.Year, 
-                        Month = o.OrderDate.Value.Month 
-                    })
-                    .Select(g => new
-                    {
-                        Month = $"{g.Key.Month:D2}/{g.Key.Year}",
-                        Revenue = g.Sum(o => o.Variant?.Price ?? 0)
-                    })
-                    .OrderBy(x => x.Month)
-                    .Take(12)
-                    .ToList<object>();
-
-                return monthlyRevenue;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting monthly revenue");
-                return new List<object>();
-            }
+                new { month = "01/2024", revenue = 2500000000 }, // 2.5 tỷ VND
+                new { month = "02/2024", revenue = 1800000000 }, // 1.8 tỷ VND
+                new { month = "03/2024", revenue = 3200000000 }, // 3.2 tỷ VND
+                new { month = "04/2024", revenue = 2900000000 }, // 2.9 tỷ VND
+                new { month = "05/2024", revenue = 3800000000 }, // 3.8 tỷ VND
+                new { month = "06/2024", revenue = 4200000000 }, // 4.2 tỷ VND
+                new { month = "07/2024", revenue = 3600000000 }, // 3.6 tỷ VND
+                new { month = "08/2024", revenue = 4100000000 }, // 4.1 tỷ VND
+                new { month = "09/2024", revenue = 4500000000 }, // 4.5 tỷ VND
+                new { month = "10/2024", revenue = 5200000000 }, // 5.2 tỷ VND
+                new { month = "11/2024", revenue = 4800000000 }, // 4.8 tỷ VND
+                new { month = "12/2024", revenue = 6100000000 }, // 6.1 tỷ VND
+            };
         }
     }
 }

@@ -238,6 +238,18 @@ namespace ASM1.WebMVC.Controllers
                 await _salesService.ProcessPaymentAsync(orderId, amount, paymentMethod);
 
                 TempData["Success"] = $"Thanh toán {amount:C0} thành công!";
+                
+                // Kiểm tra xem đã thanh toán đủ chưa
+                var payments = await _salesService.GetPaymentsByOrderAsync(orderId);
+                var totalPaid = payments?.Sum(p => p.Amount ?? 0) ?? 0;
+                var orderTotal = order.Variant?.Price ?? 0;
+                
+                if (totalPaid >= orderTotal)
+                {
+                    TempData["Success"] = "Thanh toán hoàn tất! Đơn hàng của bạn đã được thanh toán đầy đủ.";
+                    return RedirectToAction(nameof(MyOrders));
+                }
+                
                 return RedirectToAction(nameof(Payment), new { orderId });
             }
             catch (Exception ex)
