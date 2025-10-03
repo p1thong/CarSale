@@ -1,0 +1,140 @@
+@model IEnumerable<Manufacturer>
+@{
+    ViewData["Title"] = "Quản lý hãng xe";
+}
+
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h2 class="mb-0">
+            <i class="fas fa-industry text-primary me-2"></i>
+            Quản lý hãng xe
+        </h2>
+        <div>
+            <a href="@Url.Action("Dashboard")" class="btn btn-outline-secondary me-2">
+                <i class="fas fa-arrow-left me-2"></i>Dashboard
+            </a>
+            <a href="@Url.Action("CreateManufacturer")" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Thêm hãng xe
+            </a>
+        </div>
+    </div>
+
+    <!-- Manufacturers List -->
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-list me-2"></i>Danh sách hãng xe (@Model.Count() hãng)
+            </h5>
+        </div>
+        <div class="card-body">
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Tên hãng</th>
+                                <th>Quốc gia</th>
+                                <th>Địa chỉ</th>
+                                <th class="text-center">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var manufacturer in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-primary">#@manufacturer.ManufacturerId</span>
+                                    </td>
+                                    <td>
+                                        <strong>@manufacturer.Name</strong>
+                                    </td>
+                                    <td>
+                                        <i class="fas fa-globe me-2"></i>@manufacturer.Country
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(manufacturer.Address))
+                                        {
+                                            <i class="fas fa-map-marker-alt me-2"></i>@manufacturer.Address
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Chưa có địa chỉ</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <a href="@Url.Action("EditManufacturer", new { id = manufacturer.ManufacturerId })" 
+                                               class="btn btn-sm btn-outline-warning">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                    onclick="confirmDelete(@manufacturer.ManufacturerId, '@manufacturer.Name')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-industry fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Chưa có hãng xe nào</h5>
+                    <p class="text-muted">Hãy thêm hãng xe đầu tiên</p>
+                    <a href="@Url.Action("CreateManufacturer")" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Thêm hãng xe
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Xác nhận xóa
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn có chắc chắn muốn xóa hãng xe <strong id="manufacturerName"></strong>?</p>
+                <p class="text-danger">
+                    <i class="fas fa-warning me-2"></i>
+                    Hành động này không thể hoàn tác!
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>Xóa
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function confirmDelete(manufacturerId, manufacturerName) {
+            document.getElementById('manufacturerName').textContent = manufacturerName;
+            document.getElementById('deleteForm').action = '@Url.Action("DeleteManufacturer")/' + manufacturerId;
+            
+            var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            deleteModal.show();
+        }
+    </script>
+}

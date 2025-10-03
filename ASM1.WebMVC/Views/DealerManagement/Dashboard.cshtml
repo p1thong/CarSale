@@ -1,0 +1,233 @@
+@{
+    ViewData["Title"] = "Dealer Dashboard";
+}
+
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h2 class="mb-0">
+            <i class="fas fa-tachometer-alt text-primary me-2"></i>
+            Dashboard Dealer
+        </h2>
+        <div class="btn-group">
+            <a href="@Url.Action("Manufacturers")" class="btn btn-outline-primary">
+                <i class="fas fa-industry me-2"></i>Quản lý hãng xe
+            </a>
+            <a href="@Url.Action("VehicleModels")" class="btn btn-outline-primary">
+                <i class="fas fa-car me-2"></i>Quản lý mẫu xe
+            </a>
+            <a href="@Url.Action("VehicleVariants")" class="btn btn-outline-primary">
+                <i class="fas fa-cogs me-2"></i>Quản lý phiên bản
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h4 class="mb-0">@(ViewBag.TopSellerVehicles?.Count ?? 0)</h4>
+                            <p class="mb-0">Top Selling Models</p>
+                        </div>
+                        <div class="ms-3">
+                            <i class="fas fa-trophy fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h4 class="mb-0">@(ViewBag.MonthlyRevenue?.Count ?? 0)</h4>
+                            <p class="mb-0">Months Revenue Data</p>
+                        </div>
+                        <div class="ms-3">
+                            <i class="fas fa-chart-line fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h4 class="mb-0">@DateTime.Now.ToString("dd/MM")</h4>
+                            <p class="mb-0">Today's Date</p>
+                        </div>
+                        <div class="ms-3">
+                            <i class="fas fa-calendar fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h4 class="mb-0">Active</h4>
+                            <p class="mb-0">System Status</p>
+                        </div>
+                        <div class="ms-3">
+                            <i class="fas fa-heartbeat fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row">
+        <!-- Top Seller Vehicles Chart -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-star me-2"></i>Top Selling Vehicles
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="topSellerChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Revenue Chart -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-dollar-sign me-2"></i>Monthly Revenue
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="revenueChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-rocket me-2"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="@Url.Action("CreateManufacturer")" class="btn btn-primary w-100">
+                                <i class="fas fa-plus me-2"></i>
+                                Thêm hãng xe
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="@Url.Action("CreateVehicleModel")" class="btn btn-success w-100">
+                                <i class="fas fa-plus me-2"></i>
+                                Thêm mẫu xe
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="@Url.Action("CreateVehicleVariant")" class="btn btn-warning w-100">
+                                <i class="fas fa-plus me-2"></i>
+                                Thêm phiên bản
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="@Url.Action("AllOrders", "DealerOrder")" class="btn btn-info w-100">
+                                <i class="fas fa-list me-2"></i>
+                                Xem đơn hàng
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Top Seller Vehicles Chart
+        const topSellerData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.TopSellerVehicles ?? new List<object>()));
+        
+        const topSellerCtx = document.getElementById('topSellerChart').getContext('2d');
+        new Chart(topSellerCtx, {
+            type: 'doughnut',
+            data: {
+                labels: topSellerData.map(item => item.vehicleName || 'Unknown'),
+                datasets: [{
+                    data: topSellerData.map(item => item.count || 0),
+                    backgroundColor: [
+                        '#FF6384',
+                        '#36A2EB',
+                        '#FFCE56',
+                        '#4BC0C0',
+                        '#9966FF'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // Monthly Revenue Chart
+        const revenueData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.MonthlyRevenue ?? new List<object>()));
+        
+        const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+        new Chart(revenueCtx, {
+            type: 'line',
+            data: {
+                labels: revenueData.map(item => item.month || 'Unknown'),
+                datasets: [{
+                    label: 'Revenue (VND)',
+                    data: revenueData.map(item => item.revenue || 0),
+                    borderColor: '#28a745',
+                    backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return new Intl.NumberFormat('vi-VN').format(value) + ' VND';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+}

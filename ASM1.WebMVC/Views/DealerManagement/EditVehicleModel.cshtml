@@ -1,0 +1,101 @@
+@model VehicleModel
+@{
+    ViewData["Title"] = "Chỉnh sửa mẫu xe";
+}
+
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h2 class="mb-0">
+            <i class="fas fa-edit text-warning me-2"></i>
+            Chỉnh sửa mẫu xe
+        </h2>
+        <a href="@Url.Action("VehicleModels")" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Quay lại
+        </a>
+    </div>
+
+    <!-- Form -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Thông tin mẫu xe #@Model.VehicleModelId
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="EditVehicleModel" method="post">
+                        <input asp-for="VehicleModelId" type="hidden" />
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Name" class="form-label">
+                                    <i class="fas fa-tag me-2"></i>Tên mẫu xe <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="Name" class="form-control" placeholder="Ví dụ: Camry, Civic..." />
+                                <span asp-validation-for="Name" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ManufacturerId" class="form-label">
+                                    <i class="fas fa-industry me-2"></i>Hãng xe <span class="text-danger">*</span>
+                                </label>
+                                <select asp-for="ManufacturerId" class="form-select">
+                                    <option value="">-- Chọn hãng xe --</option>
+                                    @if (ViewBag.Manufacturers != null)
+                                    {
+                                        @foreach (var manufacturer in (IEnumerable<Manufacturer>)ViewBag.Manufacturers)
+                                        {
+                                            <option value="@manufacturer.ManufacturerId">@manufacturer.Name</option>
+                                        }
+                                    }
+                                </select>
+                                <span asp-validation-for="ManufacturerId" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Category" class="form-label">
+                                    <i class="fas fa-list me-2"></i>Loại xe <span class="text-danger">*</span>
+                                </label>
+                                <select asp-for="Category" class="form-select">
+                                    <option value="">-- Chọn loại xe --</option>
+                                    <option value="Sedan">Sedan</option>
+                                    <option value="SUV">SUV</option>
+                                    <option value="Hatchback">Hatchback</option>
+                                    <option value="Coupe">Coupe</option>
+                                    <option value="Convertible">Convertible</option>
+                                    <option value="Pickup">Pickup</option>
+                                    <option value="Van">Van</option>
+                                    <option value="Wagon">Wagon</option>
+                                </select>
+                                <span asp-validation-for="Category" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ImageUrl" class="form-label">
+                                    <i class="fas fa-image me-2"></i>URL hình ảnh
+                                </label>
+                                <input asp-for="ImageUrl" class="form-control" placeholder="https://example.com/image.jpg" />
+                                <span asp-validation-for="ImageUrl" class="text-danger"></span>
+                                <small class="form-text text-muted">URL hình ảnh đại diện cho mẫu xe</small>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="@Url.Action("VehicleModels")" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Hủy
+                            </a>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-save me-2"></i>Cập nhật
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
