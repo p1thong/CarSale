@@ -1,6 +1,4 @@
-using ASM1.Repository.Models;
 using ASM1.Service.Services.Interfaces;
-using ASM1.Repository.Repositories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ASM1.WebMVC.Controllers
@@ -9,16 +7,13 @@ namespace ASM1.WebMVC.Controllers
     {
         private readonly ISalesService _salesService;
         private readonly ICustomerRelationshipService _customerService;
-        private readonly IOrderRepository _orderRepository;
 
         public CustomerController(
             ISalesService salesService,
-            ICustomerRelationshipService customerService,
-            IOrderRepository orderRepository)
+            ICustomerRelationshipService customerService)
         {
             _salesService = salesService;
             _customerService = customerService;
-            _orderRepository = orderRepository;
         }
 
         // Customer Portal Home
@@ -41,7 +36,7 @@ namespace ASM1.WebMVC.Controllers
                 }
 
                 // Get customer stats
-                var orders = await _orderRepository.GetOrdersByCustomerAsync(customerId.Value);
+                var orders = await _salesService.GetOrdersByCustomerAsync(customerId.Value);
 
                 ViewBag.Customer = customer;
                 ViewBag.OrdersCount = orders.Count();
@@ -70,7 +65,7 @@ namespace ASM1.WebMVC.Controllers
 
             try
             {
-                var orders = await _orderRepository.GetOrdersByCustomerAsync(customerId.Value);
+                var orders = await _salesService.GetOrdersByCustomerAsync(customerId.Value);
                 return View(orders);
             }
             catch (Exception ex)

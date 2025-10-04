@@ -5,7 +5,7 @@
 
 <div class="container mt-4">
     <!-- Debug Info (remove this later) -->
-    @if (ViewBag.SessionCustomerId != null || ViewBag.UserRole != null)
+    @* @if (ViewBag.SessionCustomerId != null || ViewBag.UserRole != null)
     {   
         <div class="alert alert-info">
             <strong>Debug Info:</strong><br>
@@ -17,7 +17,7 @@
                 <br><strong>Error:</strong> @ViewBag.Error
             }
         </div>
-    }
+    } *@
 
     <!-- Header -->
     <div class="d-flex align-items-center justify-content-between mb-4">
@@ -177,12 +177,24 @@
                                                class="btn btn-outline-primary btn-sm">
                                                 <i class="fas fa-eye"></i> Chi tiết
                                             </a>
-                                            @if (order.Status == "Confirmed")
+                                            @{
+                                                var paymentInfo = ViewBag.OrderPaymentInfo as Dictionary<int, (decimal totalPaid, decimal orderTotal, bool isFullyPaid)>;
+                                                var hasPaymentInfo = paymentInfo?.ContainsKey(order.OrderId) == true;
+                                                var isFullyPaid = hasPaymentInfo && paymentInfo != null && paymentInfo[order.OrderId].isFullyPaid;
+                                            }
+                                            
+                                            @if (order.Status == "Confirmed" && !isFullyPaid)
                                             {
                                                 <a href="@Url.Action("Payment", "CustomerOrder", new { orderId = order.OrderId })" 
                                                    class="btn btn-success btn-sm">
                                                     <i class="fas fa-credit-card"></i> Thanh toán
                                                 </a>
+                                            }
+                                            else if (order.Status == "Confirmed" && isFullyPaid)
+                                            {
+                                                <span class="btn btn-success btn-sm disabled">
+                                                    <i class="fas fa-check"></i> Đã thanh toán
+                                                </span>
                                             }
                                         </div>
                                     </td>

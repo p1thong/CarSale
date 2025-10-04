@@ -1,4 +1,3 @@
-using ASM1.Repository.Models;
 using ASM1.Service.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,15 +8,18 @@ namespace ASM1.WebMVC.Controllers
         private readonly ISalesService _salesService;
         private readonly IVehicleService _vehicleService;
         private readonly ICustomerRelationshipService _customerService;
+        private readonly ILogger<CustomerOrderController> _logger;
 
         public CustomerOrderController(
             ISalesService salesService,
             IVehicleService vehicleService,
-            ICustomerRelationshipService customerService)
+            ICustomerRelationshipService customerService,
+            ILogger<CustomerOrderController> logger)
         {
             _salesService = salesService;
             _vehicleService = vehicleService;
             _customerService = customerService;
+            _logger = logger;
         }
 
         // Customer chọn xe và nhập thông tin đặt hàng
@@ -161,6 +163,31 @@ namespace ASM1.WebMVC.Controllers
                 }
 
                 var orders = await _salesService.GetOrdersByCustomerAsync(customerId);
+                
+                // Tính toán thông tin thanh toán cho mỗi order
+                var orderPaymentInfo = new Dictionary<int, (decimal totalPaid, decimal orderTotal, bool isFullyPaid)>();
+                
+                foreach (var order in orders)
+                {
+                    if (order.Status == "Confirmed")
+                    {
+                        var payments = await _salesService.GetPaymentsByOrderAsync(order.OrderId);
+                        var totalPaid = payments?.Sum(p => p.Amount ?? 0) ?? 0;
+                        var orderTotal = order.Variant?.Price ?? 0;
+                        var isFullyPaid = totalPaid >= orderTotal;
+                        
+                        orderPaymentInfo[order.OrderId] = (totalPaid, orderTotal, isFullyPaid);
+                        
+                        // Tự động cập nhật status thành "Completed" nếu đã thanh toán đủ
+                        if (isFullyPaid && order.Status == "Confirmed")
+                        {
+                            order.Status = "Completed";
+                            await _salesService.UpdateOrderStatusAsync(order.OrderId, "Completed");
+                        }
+                    }
+                }
+                
+                ViewBag.OrderPaymentInfo = orderPaymentInfo;
                 ViewBag.OrdersCount = orders.Count();
                 return View(orders);
             }
@@ -254,7 +281,11 @@ namespace ASM1.WebMVC.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Lỗi khi thanh toán: {ex.Message}";
+                _logger.LogError(ex, "Error processing payment for Order {OrderId}, Amount {Amount}, Method {PaymentMethod}", 
+                    orderId, amount, paymentMethod);
+                
+                var innerException = ex.InnerException?.Message ?? "No inner exception";
+                TempData["Error"] = $"Lỗi khi thanh toán: {ex.Message}. Chi tiết: {innerException}";
                 return RedirectToAction(nameof(Payment), new { orderId });
             }
         }

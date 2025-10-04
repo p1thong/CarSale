@@ -27,13 +27,13 @@
                 </div>
                 
                 <div class="card-body">
-                    <!-- Debug Info and Messages -->
+                    @* <!-- Debug Info and Messages -->
                     @if (ViewBag.DealerId != null)
                     {
                         <div class="alert alert-info mb-3">
                             <strong>Debug Info:</strong> Dealer ID = @ViewBag.DealerId, Customer Count = @ViewBag.CustomerCount
                         </div>
-                    }
+                    } *@
                     
                     @if (!string.IsNullOrEmpty(ViewBag.Message as string))
                     {

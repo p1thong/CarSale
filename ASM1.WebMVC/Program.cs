@@ -1,3 +1,4 @@
+global using ASM1.Repository.Models;
 using ASM1.Repository.Data;
 using ASM1.Repository.Repositories;
 using ASM1.Repository.Repositories.Interfaces;

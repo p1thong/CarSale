@@ -1,8 +1,7 @@
-using ASM1.Repository.Models;
+using System.Security.Claims;
 using ASM1.Service.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace ASM1.WebMVC.Controllers
 {
@@ -13,7 +12,11 @@ namespace ASM1.WebMVC.Controllers
         private readonly IAuthService _service;
         private readonly IDealerService _dealerService;
 
-        public AuthController(ILogger<AuthController> logger, IAuthService service, IDealerService dealerService)
+        public AuthController(
+            ILogger<AuthController> logger,
+            IAuthService service,
+            IDealerService dealerService
+        )
         {
             _logger = logger;
             _service = service;
@@ -29,7 +32,7 @@ namespace ASM1.WebMVC.Controllers
             {
                 return RedirectToAction("Index", "Home");
             }
-            
+
             return View();
         }
 
@@ -62,7 +65,7 @@ namespace ASM1.WebMVC.Controllers
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                 new Claim(ClaimTypes.Name, user.FullName),
                 new Claim(ClaimTypes.Role, user.Role.ToString()),
-                new Claim(ClaimTypes.Email, user.Email)
+                new Claim(ClaimTypes.Email, user.Email),
             };
 
             var claimsIdentity = new ClaimsIdentity(claims, "CarSalesCookies");
@@ -76,7 +79,7 @@ namespace ASM1.WebMVC.Controllers
             HttpContext.Session.SetString("UserRole", user.Role.ToString());
             HttpContext.Session.SetString("UserName", user.FullName);
             HttpContext.Session.SetString("UserEmail", user.Email);
-            
+
             // Lưu DealerId cho SalesController
             if (user.DealerId.HasValue)
             {
@@ -84,7 +87,8 @@ namespace ASM1.WebMVC.Controllers
             }
 
             // Thêm thông báo thành công
-            TempData["SuccessMessage"] = $"Đăng nhập thành công! Chào mừng {user.FullName} ({user.Role})";
+            TempData["SuccessMessage"] =
+                $"Đăng nhập thành công! Chào mừng {user.FullName} ({user.Role})";
 
             // Redirect về trang chủ
             return RedirectToAction("Index", "Home");
@@ -150,13 +154,13 @@ namespace ASM1.WebMVC.Controllers
         public async Task<IActionResult> Logout()
         {
             var userName = HttpContext.Session.GetString("UserName") ?? User.Identity?.Name;
-            
+
             // Đăng xuất cookie authentication
             await HttpContext.SignOutAsync("CarSalesCookies");
-            
+
             // Xóa session
             HttpContext.Session.Clear();
-            
+
             TempData["InfoMessage"] = $"Đã đăng xuất thành công! Hẹn gặp lại {userName}.";
             return RedirectToAction("Login", "Auth");
         }

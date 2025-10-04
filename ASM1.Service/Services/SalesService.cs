@@ -148,8 +148,13 @@ namespace ASM1.Service.Services
             if (order == null)
                 throw new ArgumentException("Order not found");
 
+            // Generate unique PaymentId
+            var existingPayments = await _paymentRepository.GetAllPaymentsAsync();
+            var maxPaymentId = existingPayments.Any() ? existingPayments.Max(p => p.PaymentId) : 0;
+
             var payment = new Payment
             {
+                PaymentId = maxPaymentId + 1,
                 OrderId = orderId,
                 Amount = amount,
                 PaymentMethod = paymentMethod,

@@ -1,9 +1,6 @@
-using ASM1.Repository.Models;
 using ASM1.Service.Services.Interfaces;
 using ASM1.WebMVC.Models;
 using Microsoft.AspNetCore.Mvc;
-using ASM1.Repository.Data;
-using Microsoft.EntityFrameworkCore;
 
 namespace ASM1.WebMVC.Controllers
 {
@@ -12,19 +9,16 @@ namespace ASM1.WebMVC.Controllers
         private readonly ISalesService _salesService;
         private readonly ICustomerRelationshipService _customerService;
         private readonly IVehicleService _vehicleService;
-        private readonly CarSalesDbContext _context;
 
         public SalesController(
             ISalesService salesService,
             ICustomerRelationshipService customerService,
-            IVehicleService vehicleService,
-            CarSalesDbContext context
+            IVehicleService vehicleService
         )
         {
             _salesService = salesService;
             _customerService = customerService;
             _vehicleService = vehicleService;
-            _context = context;
         }
 
         // Customer Management Actions
@@ -545,136 +539,6 @@ namespace ASM1.WebMVC.Controllers
             {
                 TempData["Error"] = $"Lỗi khi tải chi tiết đơn hàng: {ex.Message}";
                 return RedirectToAction(nameof(Orders));
-            }
-        }
-
-        [HttpGet]
-        public IActionResult FixDatabase()
-        {
-            return View();
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> FixIdentityColumns()
-        {
-            try
-            {
-                await _context.Database.ExecuteSqlRawAsync(@"
-                    -- Check if paymentId is already identity
-                    IF NOT EXISTS (SELECT 1 FROM sys.identity_columns WHERE OBJECT_NAME(object_id) = 'Payment')
-                    BEGIN
-                        -- Create temp table
-                        SELECT * INTO Payment_Temp FROM Payment;
-                        
-                        -- Drop and recreate table with identity
-                        DROP TABLE Payment;
-                        
-                        CREATE TABLE Payment (
-                            paymentId int IDENTITY(1,1) NOT NULL,
-                            orderId int NOT NULL,
-                            amount decimal(12,2) NOT NULL,
-                            paymentDate datetime NULL,
-                            method varchar(50) NULL,
-                            Status varchar(4000) NULL,
-                            PaymentMethod varchar(4000) NULL,
-                            CONSTRAINT PK__Payment__7536E352113ABA0A PRIMARY KEY (paymentId)
-                        );
-                        
-                        -- Restore data (excluding identity column)
-                        IF EXISTS (SELECT * FROM Payment_Temp)
-                        BEGIN
-                            SET IDENTITY_INSERT Payment ON;
-                            INSERT INTO Payment (paymentId, orderId, amount, paymentDate, method, Status, PaymentMethod)
-                            SELECT paymentId, orderId, amount, paymentDate, method, Status, PaymentMethod FROM Payment_Temp;
-                            SET IDENTITY_INSERT Payment OFF;
-                        END
-                        
-                        DROP TABLE Payment_Temp;
-                    END
-                ");
-                
-                TempData["Success"] = "Identity columns đã được fix thành công!";
-                return Json(new { success = true, message = "Identity columns fixed!" });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
-
-        // API endpoints for CreateQuotation form
-        [HttpGet]
-        public async Task<IActionResult> GetCustomersJson()
-        {
-            try
-            {
-                var dealerId = GetCurrentDealerId();
-                var customers = await _salesService.GetCustomersByDealerAsync(dealerId);
-                return Json(
-                    customers.Select(c => new
-                    {
-                        value = c.CustomerId,
-                        text = $"{c.FullName} ({c.Email})",
-                    })
-                );
-            }
-            catch
-            {
-                return Json(new object[0]);
-            }
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetManufacturersJson()
-        {
-            try
-            {
-                var manufacturers = await _vehicleService.GetAllManufacturersAsync();
-                return Json(
-                    manufacturers.Select(m => new { value = m.ManufacturerId, text = m.Name })
-                );
-            }
-            catch
-            {
-                return Json(new object[0]);
-            }
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetModelsByManufacturerJson(int manufacturerId)
-        {
-            try
-            {
-                var models = await _vehicleService.GetVehicleModelsByManufacturerAsync(
-                    manufacturerId
-                );
-                return Json(models.Select(m => new { value = m.VehicleModelId, text = m.Name }));
-            }
-            catch
-            {
-                return Json(new object[0]);
-            }
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetVariantsByModelJson(int modelId)
-        {
-            try
-            {
-                var variants = await _vehicleService.GetVehicleVariantsByModelAsync(modelId);
-                return Json(
-                    variants.Select(v => new
-                    {
-                        value = v.VariantId,
-                        text = $"{v.Version} - {v.Color ?? "N/A"}",
-                        price = v.Price,
-                        quantity = v.Quantity,
-                    })
-                );
-            }
-            catch
-            {
-                return Json(new object[0]);
             }
         }
 
