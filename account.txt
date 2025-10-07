@@ -1,0 +1,7 @@
+-- Dealer account
+email: dealer1@carsales.com
+password: dealer123
+
+-- Customer account
+email: phamnhatthong1712@gmail.com
+password: 123456
